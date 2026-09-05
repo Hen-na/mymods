@@ -12,7 +12,7 @@
   <title>Hen_na's Blog</title>
   <link rel="icon" href="assets/images/Grass_Block.webp" type="image/webp">
 
-  <link rel="stylesheet" href="assets/css/blog.css?v=18">
+  <link rel="stylesheet" href="assets/css/blog.css?v=28">
 </head>
 
 <body>
@@ -22,36 +22,37 @@
     <!-- ***** Desktop icons: single click opens a window or a page ***** -->
     <div class="desk-icons">
       <a class="desk-icon" href="#blog-win" data-open="blog-win">
-        <span class="ico ico-pc" aria-hidden="true"></span><span>blog.exe</span>
+        <span class="ico i-net" aria-hidden="true"></span><span>blog.exe</span>
       </a>
       <a class="desk-icon" href="#about-win" data-open="about-win">
-        <span class="ico ico-note" aria-hidden="true"></span><span>about_me.txt</span>
+        <span class="ico i-note" aria-hidden="true"></span><span>about_me.txt</span>
       </a>
       <a class="desk-icon" href="#links-win" data-open="links-win">
-        <span class="ico ico-folder" aria-hidden="true"></span><span>my links</span>
+        <span class="ico i-folder" aria-hidden="true"></span><span>my links</span>
       </a>
       <a class="desk-icon" href="#gb-win" data-open="gb-win">
-        <span class="ico ico-note" aria-hidden="true"></span><span>guestbook</span>
+        <span class="ico i-note" aria-hidden="true"></span><span>guestbook</span>
       </a>
       <a class="desk-icon" href="#cd-win" data-open="cd-win">
-        <span class="ico ico-pc" aria-hidden="true"></span><span>cd player</span>
+        <span class="ico i-sound" aria-hidden="true"></span><span>cd player</span>
       </a>
       <a class="desk-icon" href="#lyrics-win" data-open="lyrics-win">
-        <span class="ico ico-note" aria-hidden="true"></span><span>lyrics.txt</span>
+        <span class="ico i-note" aria-hidden="true"></span><span>lyrics.txt</span>
       </a>
       <a class="desk-icon" href="#" id="wallpaper-toggle">
-        <span class="ico ico-folder" aria-hidden="true"></span><span>display</span>
+        <span class="ico i-folder" aria-hidden="true"></span><span>display</span>
       </a>
       <a class="desk-icon" href="index.html">
-        <span class="ico ico-bin" aria-hidden="true"></span><span>exit to 2008</span>
+        <span class="ico i-bin" aria-hidden="true"></span><span>exit to 2008</span>
       </a>
     </div>
 
-    <!-- ================================================== blog.exe ======= -->
-    <section class="window" id="blog-win" data-x="108" data-y="10" style="left: 108px; top: 10px; width: min(560px, calc(100% - 130px));">
+    <!-- ================================================== the browser === -->
+    <!-- blog.exe is dressed as a 1999 browser with the site open inside it. -->
+    <section class="window browser" id="blog-win" data-x="108" data-y="10" style="left: 108px; top: 10px; width: min(640px, calc(100% - 130px));">
       <div class="title-bar">
-        <span class="tb-icon" aria-hidden="true"></span>
-        <span class="tb-text">blog.exe — Hen_na's diary</span>
+        <span class="tb-icon i-net" aria-hidden="true"></span>
+        <span class="tb-text">Hen_na's Homepage &mdash; Netscape</span>
         <span class="tb-btns">
           <button type="button" data-act="shade" title="Roll up"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
           <button type="button" data-act="max" title="Maximize"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
@@ -60,21 +61,122 @@
       </div>
 
       <div class="menu-bar">
-        <span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span><span><u>H</u>elp</span>
+        <span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span>
+        <span><u>G</u>o</span><span><u>C</u>ommunicator</span><span><u>H</u>elp</span>
       </div>
 
-      <div class="win-body scroll">
-        <p class="marquee"><span>*** WELCOME TO MY HOMEPAGE *** drag the windows around, they move ***
-          LiDAR Scanner 1.0.0 out now *** best viewed at 800x600 *** sign my guestbook! ***</span></p>
+      <!-- Toolbar and address bar: decoration, but they press in like the rest. -->
+      <div class="browser-bar">
+        <button type="button" class="nav-btn"><i class="nav-ico back" aria-hidden="true"></i>Back</button>
+        <button type="button" class="nav-btn"><i class="nav-ico fwd" aria-hidden="true"></i>Forward</button>
+        <button type="button" class="nav-btn" data-nav="reload"><i class="nav-ico reload" aria-hidden="true"></i>Reload</button>
+        <button type="button" class="nav-btn"><i class="nav-ico home" aria-hidden="true"></i>Home</button>
+        <span class="bar-sep" aria-hidden="true"></span>
+        <button type="button" class="nav-btn" data-nav="print"><i class="nav-ico print" aria-hidden="true"></i>Print</button>
+        <button type="button" class="nav-btn"><i class="nav-ico stop" aria-hidden="true"></i>Stop</button>
+      </div>
 
-        <div class="construction"><span>&#9888; UNDER CONSTRUCTION &#9888;</span></div>
+      <div class="browser-location">
+        <span class="loc-label">Location:</span>
+        <span class="loc-field">http://www.hennablog.com/index.html</span>
+      </div>
 
-        <div id="posts"><!-- filled from assets/data/posts.js --></div>
+      <!-- ===== the page itself ===== -->
+      <div class="win-body scroll page99">
+        <header class="page-head">
+          <button type="button" class="butterfly-btn" id="butterfly-btn" aria-label="butterfly"><img class="butterfly" src="assets/images/butterfly.gif" alt="" data-optional></button>
+          <h1 class="page-title">Hen_na's Homepage</h1>
+          <p class="page-sub">~ Welcome to my corner of the web ~</p>
+          <p class="marquee"><img class="dino" id="dino" src="assets/images/dino.gif" alt="" data-optional hidden><span>*** WELCOME TO MY HOMEPAGE *** drag the windows around, they move ***
+            LiDAR Scanner 1.0.0 out now *** best viewed at 800x600 *** sign my guestbook! ***</span></p>
+        </header>
+
+        <div class="page-cols">
+          <nav class="page-side">
+            <p class="side-head">&#9658; NAVIGATION &#9668;</p>
+            <ul class="side-menu">
+              <li><a href="index.html">the mod</a><span>LiDAR Scanner</span></li>
+              <li><a href="versions.html">versions</a><span>every build</span></li>
+              <li><a href="#gb-win" data-open="gb-win">guestbook</a><span>sign it!</span></li>
+              <li><a href="#cd-win" data-open="cd-win">music</a><span>what I listen to</span></li>
+              <li><a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" target="_blank" rel="noopener">youtube</a><span>my videos</span></li>
+              <li><a href="https://t.me/kucheraviyvestnik" target="_blank" rel="noopener">telegram</a><span>come say hi</span></li>
+            </ul>
+
+            <p class="side-head">&#9658; BLINKIES &#9668;</p>
+            <div class="blinkies">
+              <div class="blinkie b-pink"><span>&#9733; LiDAR SCANNER &#9733;</span></div>
+              <div class="blinkie b-cyan"><span>MADE IN A TEXT EDITOR</span></div>
+              <div class="blinkie b-lime"><span>NO FRAMEWORKS HERE</span></div>
+              <div class="blinkie b-purple"><span>&#9670; FABRIC MODS &#9670;</span></div>
+              <div class="blinkie b-fire"><span>THE LIGHTS ARE OFF</span></div>
+            </div>
+
+            <p class="side-head">&#9658; LINK ME &#9668;</p>
+            <div class="buttons88">
+              <a class="btn88 k-1" href="index.html">LiDAR<br>SCANNER</a>
+              <a class="btn88 k-2" href="index.html">HEN_NA'S<br>SITE</a>
+              <a class="btn88 k-3" href="blog.html">BLOG<br>SINCE 2026</a>
+              <a class="btn88 k-4" href="versions.html">GET THE<br>MOD</a>
+            </div>
+
+            <p class="side-head">&#9658; VISITORS &#9668;</p>
+            <div class="counter" id="counter" aria-label="Visit counter"></div>
+            <p class="counter-note">visits from this browser</p>
+          </nav>
+
+          <main class="page-main">
+            <div class="construction"><span>&#9888; UNDER CONSTRUCTION &#9888;</span></div>
+            <div id="posts"><!-- filled from assets/data/posts.js --></div>
+          </main>
+        </div>
+
+        <footer class="page-foot">
+          <img class="butterfly small" src="assets/images/butterfly.gif" alt="" data-optional>
+          <p>This page is best viewed with your eyes &middot; hand-written HTML &middot; no cookies</p>
+        </footer>
       </div>
 
       <div class="status-bar">
-        <span>Done</span>
-        <span>Internet zone</span>
+        <span>Document: Done</span>
+        <span>www.hennablog.com</span>
+        <span class="grip" data-resize title="Drag to resize"></span>
+      </div>
+    </section>
+
+    <!-- ================================================ wake_up.exe ==== -->
+    <!-- Opens and closes itself. Nobody asked it to. -->
+    <section class="window console-win" id="wake-win" data-x="380" data-y="200" style="left: 380px; top: 200px; width: 360px;" hidden>
+      <div class="title-bar">
+        <span class="tb-icon i-net" aria-hidden="true"></span>
+        <span class="tb-text">C:\WINDOWS\SYSTEM\wake_up.exe</span>
+        <span class="tb-btns">
+          <button type="button" data-act="close" tabindex="-1"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+      <div class="win-body console-body">
+        <p class="console-line">C:\&gt; run wake_up.exe</p>
+        <img id="wake-img" src="assets/images/mushrooms.png" alt="" data-optional>
+      </div>
+    </section>
+
+    <!-- ============================================== the butterfly ==== -->
+    <!-- Opened by clicking the butterfly on the page. -->
+    <section class="window" id="eyes-win" data-x="300" data-y="120" style="left: 300px; top: 120px; width: 340px;" hidden>
+      <div class="title-bar">
+        <span class="tb-icon i-net" aria-hidden="true"></span>
+        <span class="tb-text">we_have_been_waiting.jpg</span>
+        <span class="tb-btns">
+          <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
+          <button type="button" data-act="max"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
+          <button type="button" data-act="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+      <div class="win-body eyes-body">
+        <img id="eyes-img" src="assets/images/butterfly-eyes.png" alt="" data-optional>
+      </div>
+      <div class="status-bar">
+        <span>1 of 1</span>
         <span class="grip" data-resize title="Drag to resize"></span>
       </div>
     </section>
@@ -82,7 +184,7 @@
     <!-- ================================================== about_me.txt === -->
     <section class="window" id="about-win" data-x="690" data-y="10" style="left: 690px; top: 10px; width: 250px;">
       <div class="title-bar">
-        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-icon i-note" aria-hidden="true"></span>
         <span class="tb-text">about_me.txt — Notepad</span>
         <span class="tb-btns">
           <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
@@ -105,7 +207,7 @@
     <!-- ================================================== my links ======= -->
     <section class="window" id="links-win" data-x="690" data-y="212" style="left: 690px; top: 212px; width: 250px;">
       <div class="title-bar">
-        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-icon i-folder" aria-hidden="true"></span>
         <span class="tb-text">my links</span>
         <span class="tb-btns">
           <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
@@ -122,33 +224,13 @@
           <a href="https://fabricmc.net/" target="_blank" rel="noopener">&raquo; Fabric</a>
         </p>
 
-        <p style="margin-top:8px;"><b>Visitors</b></p>
-        <div class="counter" id="counter" aria-label="Visit counter"></div>
-        <p class="counter-note">visits from this browser</p>
-
-        <p style="margin-top:10px;"><b>Blinkies</b></p>
-        <div class="blinkies">
-          <div class="blinkie b-pink"><span>&#9733; LiDAR SCANNER &#9733;</span></div>
-          <div class="blinkie b-cyan"><span>MADE IN A TEXT EDITOR</span></div>
-          <div class="blinkie b-lime"><span>NO FRAMEWORKS HERE</span></div>
-          <div class="blinkie b-purple"><span>&#9670; FABRIC MODS &#9670;</span></div>
-          <div class="blinkie b-fire"><span>THE LIGHTS ARE OFF</span></div>
-        </div>
-
-        <p style="margin-top:10px;"><b>Link me</b></p>
-        <div class="buttons88">
-          <a class="btn88 k-1" href="index.html">LiDAR<br>SCANNER</a>
-          <a class="btn88 k-2" href="index.html">HEN_NA'S<br>SITE</a>
-          <a class="btn88 k-3" href="blog.html">BLOG<br>SINCE 2026</a>
-          <a class="btn88 k-4" href="versions.html">GET THE<br>MOD</a>
-        </div>
       </div>
     </section>
 
     <!-- ================================================== cd player ====== -->
     <section class="window" id="cd-win" data-x="958" data-y="10" style="left: 958px; top: 10px; width: 300px;">
       <div class="title-bar">
-        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-icon i-sound" aria-hidden="true"></span>
         <span class="tb-text">CD Player</span>
         <span class="tb-btns">
           <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
@@ -190,7 +272,7 @@
     <!-- Opens by itself once a track is picked in the CD Player. -->
     <section class="window" id="lyrics-win" data-x="690" data-y="440" style="left: 690px; top: 440px; width: 280px;" hidden>
       <div class="title-bar">
-        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-icon i-note" aria-hidden="true"></span>
         <span class="tb-text" id="lyrics-title">lyrics.txt — Notepad</span>
         <span class="tb-btns">
           <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
@@ -199,17 +281,21 @@
         </span>
       </div>
       <div class="menu-bar"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>S</u>earch</span></div>
-      <div class="win-body">
+      <div class="win-body scroll">
         <div class="notepad" id="lyrics-body">
           <p>Pick a track in the CD Player.</p>
         </div>
+      </div>
+      <div class="status-bar">
+        <span id="lyrics-status">No track</span>
+        <span class="grip" data-resize title="Drag to resize"></span>
       </div>
     </section>
 
     <!-- ================================================== guestbook ====== -->
     <section class="window" id="gb-win" data-x="958" data-y="186" style="left: 958px; top: 186px; width: 300px;">
       <div class="title-bar">
-        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-icon i-note" aria-hidden="true"></span>
         <span class="tb-text">guestbook.exe</span>
         <span class="tb-btns">
           <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
@@ -233,18 +319,9 @@
 
   </div>
 
-  <footer class="blog-footer">
-    <div class="badges">
-      <a class="btn88 k-4" href="https://validator.w3.org/" target="_blank" rel="noopener">VALID<br>HTML</a>
-      <a class="btn88 k-1" href="https://fabricmc.net/" target="_blank" rel="noopener">POWERED BY<br>FABRIC</a>
-      <a class="btn88 k-2" href="index.html">BEST VIEWED<br>WITH EYES</a>
-    </div>
-    <p>Hen_na &middot; hand-written HTML &middot; no cookies, no trackers, no server</p>
-    <p><a href="index.html">&laquo; Back to the shiny part of the site</a></p>
-  </footer>
 
-  <script src="assets/data/posts.js?v=18"></script>
-  <script src="assets/js/blog.js?v=18" defer></script>
+  <script src="assets/data/posts.js?v=28"></script>
+  <script src="assets/js/blog.js?v=28" defer></script>
 </body>
 
 </html>

@@ -24,6 +24,10 @@
   var EDGE_KEEP = 90;
   var BAR_KEEP = 26;
 
+  /* Floors for the resize grip: narrower or shorter than this is unusable. */
+  var MIN_WIDTH = 240;
+  var MIN_BODY_HEIGHT = 120;
+
   function element(tag, className, text) {
     var node = document.createElement(tag);
     if (className) { node.className = className; }
@@ -187,9 +191,9 @@
         var height = startHeight + (moveEvent.clientY - startY);
 
         // Never smaller than usable, never wider than what is left of the desktop.
-        win.style.width = Math.max(300, Math.min(width, desktop.clientWidth - win.offsetLeft - 8)) + 'px';
+        win.style.width = Math.max(MIN_WIDTH, Math.min(width, desktop.clientWidth - win.offsetLeft - 8)) + 'px';
         body.style.maxHeight = 'none';
-        body.style.height = Math.max(140, height) + 'px';
+        body.style.height = Math.max(MIN_BODY_HEIGHT, height) + 'px';
       }
 
       function end() {
@@ -307,19 +311,36 @@
   layoutWindows();
   window.addEventListener('resize', layoutWindows);
 
-  /* --------------------------------------------------------- desktop icons -- */
-  // Icons either open a window (data-open) or are plain links to other pages.
-  [].forEach.call(document.querySelectorAll('[data-open]'), function (icon) {
-    icon.addEventListener('click', function (event) {
+  /* ------------------------------------------------------- opening windows -- */
+  function openWindowById(id) {
+    var win = document.getElementById(id);
+    if (!win) { return; }
+    win.hidden = false;
+    win.classList.remove('shaded');
+    focusWindow(win);
+    layoutWindows();
+    if (FLOW_LAYOUT.matches) { win.scrollIntoView({ block: 'start' }); }
+  }
+
+  // Links inside the page open a window on a single click. Desktop shortcuts
+  // are handled in wireSelection instead: there, a click selects and only a
+  // double click opens, the way a desktop behaves.
+  [].forEach.call(document.querySelectorAll('[data-open]:not(.desk-icon)'), function (link) {
+    link.addEventListener('click', function (event) {
       event.preventDefault();
-      var win = document.getElementById(icon.dataset.open);
-      if (!win) { return; }
-      win.hidden = false;
-      win.classList.remove('shaded');
-      focusWindow(win);
-      layoutWindows();
-      if (FLOW_LAYOUT.matches) { win.scrollIntoView({ block: 'start' }); }
+      openWindowById(link.dataset.open);
     });
+  });
+
+  /* -------------------------------------------------------- optional art -- */
+  // Decorations marked [data-optional] simply disappear if the file is not
+  // there, rather than leaving a broken-image box on the page.
+  // The script is deferred, so an image that was going to fail has usually
+  // failed already by now: a finished load with no width is that case, and the
+  // listener alone would never fire for it.
+  [].forEach.call(document.querySelectorAll('img[data-optional]'), function (image) {
+    if (image.complete && image.naturalWidth === 0) { image.remove(); return; }
+    image.addEventListener('error', function () { image.remove(); });
   });
 
   /* ------------------------------------------------------------- wallpaper -- */
@@ -331,14 +352,11 @@
 
   try { applyWallpaper(localStorage.getItem(WALLPAPER_KEY)); } catch (error) { /* no storage */ }
 
-  var wallpaperToggle = document.getElementById('wallpaper-toggle');
-  if (wallpaperToggle) {
-    wallpaperToggle.addEventListener('click', function (event) {
-      event.preventDefault();
-      var next = document.body.classList.contains('wallpaper-stars') ? 'teal' : 'stars';
-      applyWallpaper(next);
-      try { localStorage.setItem(WALLPAPER_KEY, next); } catch (error) { /* no storage */ }
-    });
+  // Called by double-clicking the Display shortcut.
+  function toggleWallpaper() {
+    var next = document.body.classList.contains('wallpaper-stars') ? 'teal' : 'stars';
+    applyWallpaper(next);
+    try { localStorage.setItem(WALLPAPER_KEY, next); } catch (error) { /* no storage */ }
   }
 
   /* ============================================================== content == */
@@ -575,6 +593,10 @@
     if (!win || !body) { return; }
 
     if (title) { title.textContent = hit.track + '.txt — Notepad'; }
+
+    var status = document.getElementById('lyrics-status');
+    if (status) { status.textContent = hit.artist + ' — ' + hit.track; }
+
     body.textContent = '';
 
     var head = element('p');
@@ -966,6 +988,197 @@
     });
   }
 
+  /* ------------------------------------------------------------ the eggs -- */
+  // Three things hidden in the page, in the spirit of the era's stranger
+  // corners. None of them announce themselves.
+  //
+  //   · clicking the butterfly opens what has been waiting
+  //   · every sixth Reload sends something running across the marquee
+  //   · Print, pressed exactly twice, shows the mushrooms for two seconds
+  //
+  // Each needs its image file in assets/images/; without one the egg simply
+  // does not fire, and nothing breaks.
+  var DINO_RUN_MS = 5200;
+  var WAKE_UP_MS = 2000;
+  var RELOAD_EVERY = 6;
+  var PRINT_TIMES = 2;
+
+  function wireEasterEggs() {
+    /* --- the butterfly opens a window ---------------------------------- */
+    var butterflyBtn = document.getElementById('butterfly-btn');
+    var eyesWin = document.getElementById('eyes-win');
+    var eyesImg = document.getElementById('eyes-img');
+
+    if (butterflyBtn && eyesWin) {
+      butterflyBtn.addEventListener('click', function () {
+        // If the picture never loaded there is nothing to show.
+        if (!eyesImg || (eyesImg.complete && eyesImg.naturalWidth === 0)) { return; }
+        eyesWin.hidden = false;
+        eyesWin.classList.remove('shaded');
+        focusWindow(eyesWin);
+        layoutWindows();
+        if (FLOW_LAYOUT.matches) { eyesWin.scrollIntoView({ block: 'center' }); }
+      });
+    }
+
+    /* --- every sixth Reload: something runs across the marquee ---------- */
+    var reloadKey = document.querySelector('[data-nav="reload"]');
+    var dino = document.getElementById('dino');
+    var reloadCount = 0;
+
+    if (reloadKey && dino) {
+      reloadKey.addEventListener('click', function () {
+        reloadCount += 1;
+        if (reloadCount % RELOAD_EVERY !== 0) { return; }
+        if (dino.complete && dino.naturalWidth === 0) { return; }
+
+        dino.hidden = false;
+        dino.classList.remove('running');
+        void dino.offsetWidth;            // restart the animation from the top
+        dino.classList.add('running');
+
+        window.setTimeout(function () {
+          dino.classList.remove('running');
+          dino.hidden = true;
+        }, DINO_RUN_MS);
+      });
+    }
+
+    /* --- Print, twice: wake up ------------------------------------------ */
+    var printKey = document.querySelector('[data-nav="print"]');
+    var printCount = 0;
+
+    var wakeWin = document.getElementById('wake-win');
+    var wakeImg = document.getElementById('wake-img');
+    var wakeTimer = 0;
+
+    if (printKey && wakeWin) {
+      printKey.addEventListener('click', function () {
+        printCount += 1;
+        if (printCount < PRINT_TIMES) { return; }
+        printCount = 0;
+
+        if (!wakeImg || (wakeImg.complete && wakeImg.naturalWidth === 0)) { return; }
+
+        // Opens in the middle of the desktop, on top of everything, then shuts
+        // itself again — as if something else were driving the machine.
+        wakeWin.hidden = false;
+        wakeWin.classList.remove('shaded');
+        if (!FLOW_LAYOUT.matches) {
+          wakeWin.style.left = Math.max(8, Math.round((desktop.clientWidth - wakeWin.offsetWidth) / 2)) + 'px';
+          wakeWin.style.top = Math.max(8, Math.round((desktop.clientHeight - wakeWin.offsetHeight) / 2)) + 'px';
+        }
+        focusWindow(wakeWin);
+
+        window.clearTimeout(wakeTimer);
+        wakeTimer = window.setTimeout(function () { wakeWin.hidden = true; }, WAKE_UP_MS);
+      });
+    }
+  }
+
+  /* ------------------------------------------------------ icon selection -- */
+  // Desktop selection, the way it worked: click picks one, Ctrl adds to the
+  // pick, a drag across empty space lassos everything it touches, and a click
+  // on bare desktop clears it. Opening is a double click, as it was.
+  function wireSelection() {
+    var icons = [].slice.call(document.querySelectorAll('.desk-icon'));
+    if (!desktop || !icons.length) { return; }
+
+    function clearSelection() {
+      icons.forEach(function (icon) { icon.classList.remove('selected'); });
+    }
+
+    function select(icon, add) {
+      if (!add) { clearSelection(); }
+      icon.classList.add('selected');
+    }
+
+    // What a double click actually does depends on the shortcut.
+    function activate(icon) {
+      if (icon.id === 'wallpaper-toggle') { toggleWallpaper(); return; }
+
+      var target = icon.dataset.open;
+      if (target) { openWindowById(target); return; }
+
+      var href = icon.getAttribute('href');
+      if (href && href.charAt(0) !== '#') { window.location.href = href; }
+    }
+
+    icons.forEach(function (icon) {
+      icon.addEventListener('click', function (event) {
+        event.preventDefault();
+        select(icon, event.ctrlKey || event.metaKey);
+      });
+
+      icon.addEventListener('dblclick', function (event) {
+        event.preventDefault();
+        activate(icon);
+      });
+    });
+
+    /* --- the lasso ------------------------------------------------------ */
+    var box = null;
+    var originX = 0;
+    var originY = 0;
+
+    desktop.addEventListener('pointerdown', function (event) {
+      if (FLOW_LAYOUT.matches) { return; }
+      if (event.button !== undefined && event.button !== 0) { return; }
+      // Only bare desktop starts a lasso: windows and icons have their own jobs.
+      if (event.target.closest('.window, .desk-icon')) { return; }
+
+      clearSelection();
+
+      var host = desktop.getBoundingClientRect();
+      originX = event.clientX - host.left;
+      originY = event.clientY - host.top;
+
+      box = element('div', 'selection-box');
+      box.style.left = originX + 'px';
+      box.style.top = originY + 'px';
+      desktop.appendChild(box);
+
+      function move(moveEvent) {
+        var x = moveEvent.clientX - host.left;
+        var y = moveEvent.clientY - host.top;
+
+        var left = Math.min(x, originX);
+        var top = Math.min(y, originY);
+        var width = Math.abs(x - originX);
+        var height = Math.abs(y - originY);
+
+        box.style.left = left + 'px';
+        box.style.top = top + 'px';
+        box.style.width = width + 'px';
+        box.style.height = height + 'px';
+
+        // Anything the rectangle overlaps counts as picked.
+        var area = { left: left, top: top, right: left + width, bottom: top + height };
+        icons.forEach(function (icon) {
+          var rect = icon.getBoundingClientRect();
+          var hit = rect.left - host.left < area.right &&
+                    rect.right - host.left > area.left &&
+                    rect.top - host.top < area.bottom &&
+                    rect.bottom - host.top > area.top;
+          icon.classList.toggle('selected', hit);
+        });
+      }
+
+      function end() {
+        desktop.removeEventListener('pointermove', move);
+        desktop.removeEventListener('pointerup', end);
+        desktop.removeEventListener('pointercancel', end);
+        if (box) { box.remove(); box = null; }
+      }
+
+      desktop.addEventListener('pointermove', move);
+      desktop.addEventListener('pointerup', end);
+      desktop.addEventListener('pointercancel', end);
+
+      event.preventDefault();
+    });
+  }
+
   /* -------------------------------------------------------- transport keys -- */
   // Nothing is played — there is no audio here and never was. The keys move the
   // needle and press in, which is all a CD Player on a webpage ever did.
@@ -1064,5 +1277,7 @@
   renderNowPlaying();
   wireCdPlayer();
   wireTransport();
+  wireEasterEggs();
+  wireSelection();
 
 })();

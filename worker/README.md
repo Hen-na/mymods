@@ -98,7 +98,20 @@ const ALLOWED_ORIGINS = [
 > Если в приглашении стоит `>` и любая команда отвечает `SyntaxError` — ты
 > внутри Node, он ждёт JavaScript. Выйти: `.exit`
 
-Дальше в терминале, из папки `worker`:
+**Все команды выполняются из папки `worker`** — там лежит `wrangler.toml`.
+Сначала перейди в неё:
+
+```bash
+cd C:\Users\heppa\mymods\worker
+```
+
+> Если запустить из другой папки, wrangler не найдёт конфиг и пойдёт искать его
+> по окрестностям — а в домашней папке упрётся в `C:\Users\heppa\Application
+> Data` и остановится с *«A permission error occurred while accessing the file
+> system»*. Это невидимая папка-ссылка родом из Windows XP, она закрыта на
+> чтение у всех. Права и антивирус ни при чём — просто зайди в `worker`.
+
+Дальше:
 
 ```bash
 npx.cmd wrangler login
