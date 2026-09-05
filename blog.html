@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hen_na's blog — notes on the LiDAR Scanner mod and whatever else, on a desktop from 1996.">
+  <meta name="theme-color" content="#008080">
+  <meta name="color-scheme" content="light">
+  <meta name="author" content="Hen_na">
+
+  <title>Hen_na's Blog</title>
+  <link rel="icon" href="assets/images/Grass_Block.webp" type="image/webp">
+
+  <link rel="stylesheet" href="assets/css/blog.css?v=4">
+</head>
+
+<body>
+
+  <div class="desktop">
+
+    <!-- ***** Desktop icons: single click opens a window or a page ***** -->
+    <div class="desk-icons">
+      <a class="desk-icon" href="#blog-win" data-open="blog-win">
+        <span class="ico ico-pc" aria-hidden="true"></span><span>blog.exe</span>
+      </a>
+      <a class="desk-icon" href="#about-win" data-open="about-win">
+        <span class="ico ico-note" aria-hidden="true"></span><span>about_me.txt</span>
+      </a>
+      <a class="desk-icon" href="#links-win" data-open="links-win">
+        <span class="ico ico-folder" aria-hidden="true"></span><span>my links</span>
+      </a>
+      <a class="desk-icon" href="#gb-win" data-open="gb-win">
+        <span class="ico ico-note" aria-hidden="true"></span><span>guestbook</span>
+      </a>
+      <a class="desk-icon" href="#cd-win" data-open="cd-win">
+        <span class="ico ico-pc" aria-hidden="true"></span><span>cd player</span>
+      </a>
+      <a class="desk-icon" href="#" id="wallpaper-toggle">
+        <span class="ico ico-folder" aria-hidden="true"></span><span>display</span>
+      </a>
+      <a class="desk-icon" href="index.html">
+        <span class="ico ico-bin" aria-hidden="true"></span><span>exit to 2008</span>
+      </a>
+    </div>
+
+    <!-- ================================================== blog.exe ======= -->
+    <section class="window" id="blog-win" data-x="108" data-y="10" style="left: 108px; top: 10px; width: min(560px, calc(100% - 130px));">
+      <div class="title-bar">
+        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-text">blog.exe — Hen_na's diary</span>
+        <span class="tb-btns">
+          <button type="button" data-act="shade" title="Roll up"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
+          <button type="button" data-act="max" title="Maximize"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
+          <button type="button" data-act="close" title="Close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+
+      <div class="menu-bar">
+        <span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span><span><u>H</u>elp</span>
+      </div>
+
+      <div class="win-body scroll">
+        <p class="marquee"><span>*** WELCOME TO MY HOMEPAGE *** drag the windows around, they move ***
+          LiDAR Scanner 1.0.0 out now *** best viewed at 800x600 *** sign my guestbook! ***</span></p>
+
+        <div class="construction"><span>&#9888; UNDER CONSTRUCTION &#9888;</span></div>
+
+        <div id="posts"><!-- filled from assets/data/posts.js --></div>
+      </div>
+
+      <div class="status-bar">
+        <span>Done</span>
+        <span>Internet zone</span>
+      </div>
+    </section>
+
+    <!-- ================================================== about_me.txt === -->
+    <section class="window" id="about-win" data-x="690" data-y="10" style="left: 690px; top: 10px; width: 250px;">
+      <div class="title-bar">
+        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-text">about_me.txt — Notepad</span>
+        <span class="tb-btns">
+          <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
+          <button type="button" data-act="max"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
+          <button type="button" data-act="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+      <div class="menu-bar"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>S</u>earch</span></div>
+      <div class="win-body">
+        <div class="notepad">
+          <p><b>Hen_na</b></p>
+          <p>I make Minecraft mods and take the lights out. Currently: a LiDAR scanner that turns the
+            world into a point cloud.</p>
+          <p>This corner of the site is hand-written HTML. The other corner is all glass and bubbles.
+            Both are me.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================== my links ======= -->
+    <section class="window" id="links-win" data-x="690" data-y="212" style="left: 690px; top: 212px; width: 250px;">
+      <div class="title-bar">
+        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-text">my links</span>
+        <span class="tb-btns">
+          <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
+          <button type="button" data-act="max"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
+          <button type="button" data-act="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+      <div class="win-body box-body">
+        <p>
+          <a href="index.html">&raquo; The mod</a><br>
+          <a href="versions.html">&raquo; Version archive</a><br>
+          <a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" target="_blank" rel="noopener">&raquo; YouTube</a><br>
+          <a href="https://t.me/kucheraviyvestnik" target="_blank" rel="noopener">&raquo; Telegram</a><br>
+          <a href="https://fabricmc.net/" target="_blank" rel="noopener">&raquo; Fabric</a>
+        </p>
+
+        <p style="margin-top:8px;"><b>Visitors</b></p>
+        <div class="counter" id="counter" aria-label="Visit counter"></div>
+        <p class="counter-note">visits from this browser</p>
+
+        <p style="margin-top:10px;"><b>Blinkies</b></p>
+        <div class="blinkies">
+          <div class="blinkie b-pink"><span>&#9733; LiDAR SCANNER &#9733;</span></div>
+          <div class="blinkie b-cyan"><span>MADE IN A TEXT EDITOR</span></div>
+          <div class="blinkie b-lime"><span>NO FRAMEWORKS HERE</span></div>
+          <div class="blinkie b-purple"><span>&#9670; FABRIC MODS &#9670;</span></div>
+          <div class="blinkie b-fire"><span>THE LIGHTS ARE OFF</span></div>
+        </div>
+
+        <p style="margin-top:10px;"><b>Link me</b></p>
+        <div class="buttons88">
+          <a class="btn88 k-1" href="index.html">LiDAR<br>SCANNER</a>
+          <a class="btn88 k-2" href="index.html">HEN_NA'S<br>SITE</a>
+          <a class="btn88 k-3" href="blog.html">BLOG<br>SINCE 2026</a>
+          <a class="btn88 k-4" href="versions.html">GET THE<br>MOD</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================== cd player ====== -->
+    <section class="window" id="cd-win" data-x="958" data-y="10" style="left: 958px; top: 10px; width: 300px;">
+      <div class="title-bar">
+        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-text">CD Player</span>
+        <span class="tb-btns">
+          <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
+          <button type="button" data-act="max"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
+          <button type="button" data-act="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+      <div class="win-body">
+        <div class="cd">
+          <div class="cd-top">
+            <div class="cd-art" aria-hidden="true"></div>
+            <div class="cd-fields">
+              <p class="cd-field"><label for="cd-artist">Artist:</label><output id="cd-artist">—</output></p>
+              <p class="cd-field"><label for="cd-track">Track:</label><output id="cd-track">—</output></p>
+              <div class="cd-seek" aria-hidden="true"><i></i></div>
+            </div>
+          </div>
+          <div class="cd-keys" aria-hidden="true">
+            <b>&#9664;&#9664;</b><b>&#9654;&#9654;</b><b>&#9654;</b><b>&#9632;</b><b>&#9679;</b>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================== guestbook ====== -->
+    <section class="window" id="gb-win" data-x="958" data-y="186" style="left: 958px; top: 186px; width: 300px;">
+      <div class="title-bar">
+        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-text">guestbook.exe</span>
+        <span class="tb-btns">
+          <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
+          <button type="button" data-act="max"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
+          <button type="button" data-act="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+      <div class="win-body box-body scroll" style="max-height: 320px;">
+        <form class="gb-form" id="gb-form">
+          <label for="gb-name">Name</label>
+          <input type="text" id="gb-name" name="name" maxlength="40" autocomplete="nickname" required>
+          <label for="gb-message">Message</label>
+          <textarea id="gb-message" name="message" maxlength="500" required></textarea>
+          <button class="btn95" type="submit">Sign it</button>
+        </form>
+        <ul class="gb-entries" id="gb-entries"></ul>
+        <p class="gb-note">This page has no server, so entries are saved in your own browser only —
+          nobody else can see them.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="blog-footer">
+    <div class="badges">
+      <a class="btn88 k-4" href="https://validator.w3.org/" target="_blank" rel="noopener">VALID<br>HTML</a>
+      <a class="btn88 k-1" href="https://fabricmc.net/" target="_blank" rel="noopener">POWERED BY<br>FABRIC</a>
+      <a class="btn88 k-2" href="index.html">BEST VIEWED<br>WITH EYES</a>
+    </div>
+    <p>Hen_na &middot; hand-written HTML &middot; no cookies, no trackers, no server</p>
+    <p><a href="index.html">&laquo; Back to the shiny part of the site</a></p>
+  </footer>
+
+  <script src="assets/data/posts.js?v=4"></script>
+  <script src="assets/js/blog.js?v=4" defer></script>
+</body>
+
+</html>
