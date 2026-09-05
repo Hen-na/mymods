@@ -12,7 +12,7 @@
   <title>Hen_na's Blog</title>
   <link rel="icon" href="assets/images/Grass_Block.webp" type="image/webp">
 
-  <link rel="stylesheet" href="assets/css/blog.css?v=10">
+  <link rel="stylesheet" href="assets/css/blog.css?v=16">
 </head>
 
 <body>
@@ -35,6 +35,9 @@
       </a>
       <a class="desk-icon" href="#cd-win" data-open="cd-win">
         <span class="ico ico-pc" aria-hidden="true"></span><span>cd player</span>
+      </a>
+      <a class="desk-icon" href="#lyrics-win" data-open="lyrics-win">
+        <span class="ico ico-note" aria-hidden="true"></span><span>lyrics.txt</span>
       </a>
       <a class="desk-icon" href="#" id="wallpaper-toggle">
         <span class="ico ico-folder" aria-hidden="true"></span><span>display</span>
@@ -183,6 +186,26 @@
       </div>
     </section>
 
+    <!-- ================================================== lyrics.txt ==== -->
+    <!-- Opens by itself once a track is picked in the CD Player. -->
+    <section class="window" id="lyrics-win" data-x="690" data-y="440" style="left: 690px; top: 440px; width: 280px;" hidden>
+      <div class="title-bar">
+        <span class="tb-icon" aria-hidden="true"></span>
+        <span class="tb-text" id="lyrics-title">lyrics.txt — Notepad</span>
+        <span class="tb-btns">
+          <button type="button" data-act="shade"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
+          <button type="button" data-act="max"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
+          <button type="button" data-act="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+      <div class="menu-bar"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>S</u>earch</span></div>
+      <div class="win-body">
+        <div class="notepad" id="lyrics-body">
+          <p>Pick a track in the CD Player.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- ================================================== guestbook ====== -->
     <section class="window" id="gb-win" data-x="958" data-y="186" style="left: 958px; top: 186px; width: 300px;">
       <div class="title-bar">
@@ -220,8 +243,8 @@
     <p><a href="index.html">&laquo; Back to the shiny part of the site</a></p>
   </footer>
 
-  <script src="assets/data/posts.js?v=10"></script>
-  <script src="assets/js/blog.js?v=10" defer></script>
+  <script src="assets/data/posts.js?v=16"></script>
+  <script src="assets/js/blog.js?v=16" defer></script>
 </body>
 
 </html>

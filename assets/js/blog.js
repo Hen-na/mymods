@@ -498,12 +498,298 @@
 
     showNowPlaying(hit.artist, hit.track, hit.art);
     closeResults();
+    openLyrics(hit);
 
     try {
       localStorage.setItem(NOW_PLAYING_KEY, JSON.stringify(hit));
     } catch (error) {
       /* No storage — the pick still stands for this pageview. */
     }
+  }
+
+  /* ------------------------------------------------------------ lyrics.txt -- */
+  // Song lyrics are licensed material: Genius does not serve them over its API
+  // at all. So this window carries what can be shown freely — the release
+  // details — links out to where the words are published properly, and adds
+  // the Genius commentary when the proxy is configured, plus whatever note the
+  // author has written about the track in BLOG_TRACK_NOTES.
+  function trackKey(artist, track) {
+    return (artist + ' — ' + track).toLowerCase();
+  }
+
+  function ownNote(hit) {
+    var notes = window.BLOG_TRACK_NOTES;
+    if (!notes) { return null; }
+
+    var wanted = trackKey(hit.artist, hit.track);
+    var keys = Object.keys(notes);
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i].toLowerCase() === wanted) { return notes[keys[i]]; }
+    }
+    return null;
+  }
+
+  function duration(ms) {
+    if (!ms) { return ''; }
+    var total = Math.round(ms / 1000);
+    var seconds = total % 60;
+    return Math.floor(total / 60) + ':' + (seconds < 10 ? '0' : '') + seconds;
+  }
+
+  function externalLink(href, label) {
+    var link = element('a', null, label);
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    return link;
+  }
+
+  function openLyrics(hit) {
+    var win = document.getElementById('lyrics-win');
+    var body = document.getElementById('lyrics-body');
+    var title = document.getElementById('lyrics-title');
+    if (!win || !body) { return; }
+
+    if (title) { title.textContent = hit.track + '.txt — Notepad'; }
+    body.textContent = '';
+
+    var head = element('p');
+    head.appendChild(element('b', null, hit.track));
+    head.appendChild(document.createElement('br'));
+    head.appendChild(document.createTextNode(hit.artist));
+    body.appendChild(head);
+
+    var facts = [];
+    if (hit.album) { facts.push('Album: ' + hit.album); }
+    if (hit.year) { facts.push('Year: ' + hit.year); }
+    if (hit.genre) { facts.push('Genre: ' + hit.genre); }
+    if (hit.length) { facts.push('Length: ' + duration(hit.length)); }
+
+    if (facts.length) {
+      var list = element('p');
+      facts.forEach(function (fact, index) {
+        if (index) { list.appendChild(document.createElement('br')); }
+        list.appendChild(document.createTextNode(fact));
+      });
+      body.appendChild(list);
+    }
+
+    var note = ownNote(hit);
+    if (note) {
+      body.appendChild(element('hr'));
+      (Array.isArray(note) ? note : [note]).forEach(function (line) {
+        body.appendChild(element('p', null, line));
+      });
+    }
+
+    body.appendChild(element('hr'));
+
+    // Where the Genius notes land once they arrive, or just the links if no
+    // proxy is configured.
+    var slot = element('div');
+    body.appendChild(slot);
+
+    if (GENIUS_API) {
+      slot.appendChild(element('p', 'muted-note', 'Looking it up on Genius…'));
+      loadNotes(hit, slot);
+    } else {
+      slot.appendChild(readElsewhere(hit));
+    }
+
+    win.hidden = false;
+    win.classList.remove('shaded');
+    focusWindow(win);
+    layoutWindows();
+    if (FLOW_LAYOUT.matches) { win.scrollIntoView({ block: 'start' }); }
+  }
+
+  // URL of the Cloudflare Worker holding the Genius token. Empty means no proxy
+  // is set up and the window shows links only.
+  var GENIUS_API = typeof window.GENIUS_API === 'string' ? window.GENIUS_API.trim() : '';
+
+  // Who made it: producers, writers, and every other role Genius has on file —
+  // mastering, mixing, art direction, whatever the contributors filled in.
+  // Plain facts about authorship, nothing licensed about them.
+  function renderCredits(data, slot) {
+    var rows = (data.credits || []).slice();
+
+    if (data.album && data.album.name) {
+      rows.unshift({ role: 'Album', names: [data.album.name] });
+    }
+    if (data.recordedAt) {
+      rows.push({ role: 'Recorded at', names: [data.recordedAt] });
+    }
+    if (!rows.length) { return; }
+
+    slot.appendChild(element('h4', 'notes-heading', 'Credits'));
+
+    var list = element('dl', 'credits');
+    rows.forEach(function (row) {
+      var line = element('div');
+      line.appendChild(element('dt', null, row.role));
+      line.appendChild(element('dd', null, row.names.join(', ')));
+      list.appendChild(line);
+    });
+    slot.appendChild(list);
+  }
+
+  // "samples", "sampled_in", "interpolated_by" … into something readable.
+  function relationshipLabel(type) {
+    var words = String(type).replace(/_/g, ' ').trim();
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }
+
+  function renderRelationships(list, slot) {
+    var groups = (list || []).filter(function (group) { return (group.songs || []).length; });
+    if (!groups.length) { return; }
+
+    slot.appendChild(element('h4', 'notes-heading', 'Connections'));
+
+    var wrap = element('dl', 'credits');
+    groups.forEach(function (group) {
+      var line = element('div');
+      line.appendChild(element('dt', null, relationshipLabel(group.type)));
+
+      var value = element('dd');
+      group.songs.forEach(function (song, index) {
+        if (index) { value.appendChild(document.createTextNode(', ')); }
+        var label = song.artist ? song.title + ' — ' + song.artist : song.title;
+        if (song.url) {
+          value.appendChild(externalLink(song.url, label));
+        } else {
+          value.appendChild(document.createTextNode(label));
+        }
+      });
+
+      line.appendChild(value);
+      wrap.appendChild(line);
+    });
+    slot.appendChild(wrap);
+  }
+
+  // Official links Genius has for the song — usually YouTube and Spotify.
+  function renderMedia(media, slot) {
+    var items = (media || []).filter(function (item) { return item.url; });
+    if (!items.length) { return; }
+
+    var line = element('p', 'notes-media');
+    items.forEach(function (item, index) {
+      if (index) { line.appendChild(document.createTextNode('  ·  ')); }
+      line.appendChild(externalLink(item.url, '» ' + relationshipLabel(item.provider)));
+    });
+    slot.appendChild(line);
+  }
+
+  /* How many annotated lines are on screen at once. The proxy sends more than
+     this, and the reroll button deals a different hand from the same batch —
+     no extra request, and a different corner of the song each time. */
+  var ANNOTATIONS_SHOWN = 5;
+
+  function shuffled(list) {
+    var copy = list.slice();
+    for (var i = copy.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var swap = copy[i];
+      copy[i] = copy[j];
+      copy[j] = swap;
+    }
+    return copy;
+  }
+
+  function renderAnnotations(all, slot) {
+    var host = element('div', 'annotations');
+    slot.appendChild(host);
+
+    function deal() {
+      host.textContent = '';
+      shuffled(all).slice(0, ANNOTATIONS_SHOWN).forEach(function (item) {
+        var block = element('div', 'annotation');
+        block.appendChild(element('p', 'annotation-line', item.fragment));
+        block.appendChild(element('p', 'annotation-note', item.note));
+        host.appendChild(block);
+      });
+    }
+
+    deal();
+
+    // Only worth offering when there is something else to show.
+    if (all.length > ANNOTATIONS_SHOWN) {
+      var reroll = element('button', 'btn95 reroll', 'Other lines');
+      reroll.type = 'button';
+      reroll.addEventListener('click', deal);
+      slot.appendChild(reroll);
+    }
+  }
+
+  // What comes back is commentary about the song — the "About" text and a few
+  // annotated lines. Never the lyrics: Genius does not serve those through its
+  // API at all, and no amount of configuration changes that.
+  function loadNotes(hit, slot) {
+    var endpoint = GENIUS_API +
+      (GENIUS_API.indexOf('?') === -1 ? '?' : '&') +
+      'artist=' + encodeURIComponent(hit.artist) +
+      '&track=' + encodeURIComponent(hit.track);
+
+    fetch(endpoint)
+      .then(function (response) {
+        if (!response.ok) { throw new Error(String(response.status)); }
+        return response.json();
+      })
+      .then(function (data) {
+        if (!data || (!data.description && !(data.annotations || []).length)) {
+          throw new Error('empty');
+        }
+
+        slot.textContent = '';
+
+        if (data.description) {
+          slot.appendChild(element('h4', 'notes-heading', 'About this song'));
+          slot.appendChild(element('p', 'notes-about', data.description));
+        }
+
+        renderCredits(data, slot);
+        renderRelationships(data.relationships, slot);
+
+        if ((data.annotations || []).length) {
+          slot.appendChild(element('h4', 'notes-heading', 'Annotated lines'));
+          renderAnnotations(data.annotations, slot);
+        }
+
+        renderMedia(data.media, slot);
+
+        var credit = element('p', 'notes-credit');
+        credit.appendChild(document.createTextNode('Notes from '));
+        credit.appendChild(externalLink(data.url || 'https://genius.com/', 'Genius'));
+        credit.appendChild(document.createTextNode(' — full lyrics there too.'));
+        slot.appendChild(credit);
+      })
+      .catch(function () {
+        // Nothing written about this song, or the proxy is down.
+        slot.textContent = '';
+        slot.appendChild(readElsewhere(hit));
+      });
+  }
+
+  // Lyrics themselves are not carried here: every source that would hand them
+  // over freely is republishing them without a licence, and Genius does not
+  // hand them over at all. Links cost nothing and put the whole song one click
+  // away.
+  function readElsewhere(hit) {
+    var search = encodeURIComponent(hit.artist + ' ' + hit.track);
+
+    var where = element('p');
+    where.appendChild(document.createTextNode('Read the full lyrics at:'));
+    where.appendChild(document.createElement('br'));
+    where.appendChild(externalLink('https://genius.com/search?q=' + search, '» Genius'));
+
+    where.appendChild(document.createElement('br'));
+    where.appendChild(externalLink('https://www.youtube.com/results?search_query=' + search, '» Listen on YouTube'));
+
+    if (hit.store) {
+      where.appendChild(document.createElement('br'));
+      where.appendChild(externalLink(hit.store, '» Apple Music'));
+    }
+    return where;
   }
 
   function note(text) {
@@ -604,7 +890,12 @@
             artist: row.artistName || '',
             thumb: thumb,
             // The size lives in the filename, so a bigger sleeve is a swap away.
-            art: thumb ? thumb.replace('100x100bb', '300x300bb') : ''
+            art: thumb ? thumb.replace('100x100bb', '300x300bb') : '',
+            album: row.collectionName || '',
+            year: (row.releaseDate || '').slice(0, 4),
+            genre: row.primaryGenreName || '',
+            length: row.trackTimeMillis || 0,
+            store: row.trackViewUrl || ''
           };
         }).filter(function (hit) { return hit.track && hit.artist; });
 

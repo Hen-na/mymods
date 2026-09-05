@@ -1,0 +1,14 @@
+name = "genius-proxy"
+main = "genius-proxy.js"
+compatibility_date = "2026-01-01"
+
+# Serve the Worker at genius-proxy.<account>.workers.dev — this is the address
+# the site talks to.
+workers_dev = true
+
+# No per-version preview URLs: they would publish an extra public address for
+# every deploy, and nothing here needs them.
+preview_urls = false
+
+# The access token is NOT stored here — it is a secret, set once with:
+#   npx.cmd wrangler secret put GENIUS_TOKEN
