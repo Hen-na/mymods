@@ -23,8 +23,8 @@
   /* --- chrome ------------------------------------------------------------- */
   --aqua: #1b8fd8;
   --aqua-deep: #0a5f9e;
-  --lime: #7ec420;
-  --lime-deep: #46820c;
+  --lime: #2ea3e8;
+  --lime-deep: #0a5f9e;
   --hot: #ff7a18;
 
   --glass-edge: rgba(255, 255, 255, .92);
@@ -119,15 +119,16 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
 
 .scene .sky {
   position: absolute; inset: 0;
-  background:
-    /* aerial haze thickening toward the horizon */
-    radial-gradient(150% 62% at 50% 62%, rgba(255, 255, 255, .55) 0%, rgba(255, 255, 255, 0) 62%),
-    radial-gradient(120% 70% at 78% -10%, rgba(255, 252, 226, .92), rgba(255, 255, 255, 0) 55%),
-    radial-gradient(90% 60% at 12% 6%, rgba(150, 215, 255, .5), rgba(255, 255, 255, 0) 62%),
+  /* The photograph first, the old painted sky underneath it as a fallback: if
+     the file is missing the layer is simply skipped and the gradient shows. */
+  background-image:
+    url('../images/bg-city.jpg'),
     linear-gradient(180deg,
-      #1d7fc4 0%, #2e9fe0 14%, #63c2ee 28%, var(--sky-mid) 40%,
-      #c2ecfb 50%, var(--sky-low) 56%, #eafff0 61%,
-      #cdf09a 68%, var(--grass-1) 79%, #6fb51c 90%, var(--grass-2) 100%);
+      #1d7fc4 0%, #2e9fe0 14%, #63c2ee 30%, var(--sky-mid) 46%,
+      #c2ecfb 58%, var(--sky-low) 68%, #bfe9fb 84%, #8fd0ee 100%);
+  background-size: cover, auto;
+  background-position: center center, center;
+  background-repeat: no-repeat, no-repeat;
 }
 
 /* Sun: hot core, warm halo and a faint lens ghost across the frame. */
@@ -140,7 +141,7 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
 }
 .scene .sun::after {
   content: ''; position: absolute; left: -70%; top: 78%; width: 26%; height: 26%; border-radius: 50%;
-  background: radial-gradient(circle, rgba(190, 255, 220, .3), rgba(255, 255, 255, 0) 68%);
+  background: radial-gradient(circle, rgba(190, 235, 255, .35), rgba(255, 255, 255, 0) 68%);
   filter: blur(6px);
 }
 
@@ -157,7 +158,7 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
 
 /* Two cloud decks. The far one is small, slow and hazy; the near one is larger,
    brighter and drifts faster, which is what sells the distance between them. */
-.scene .clouds {
+.scene .clouds { display: none;
   position: absolute; left: -25%; right: -25%; top: 3%; height: 34%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='240'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.013 0.036' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -2.6 0 0 0 1.32'/%3E%3CfeGaussianBlur stdDeviation='3'/%3E%3C/filter%3E%3Crect width='420' height='240' filter='url(%23c)'/%3E%3C/svg%3E");
   background-size: 62% 100%;
@@ -180,25 +181,29 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
 }
 @keyframes drift { to { transform: translate3d(22%, 0, 0); } }
 
-/* The water band at the foot of the sky: rippled, then lit with a specular
-   sheen where the sun hits it. */
+/* Mist lying on the water. It used to be densest at the top of this band,
+   which on the photograph is exactly where the skyline sits — so the city was
+   the thing getting fogged. Now it starts at nothing up by the horizon and
+   thickens as it comes down over the water, which is where haze actually
+   collects. The ripple texture rides the bottom with it. */
 .scene .horizon {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 30%;
+  position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
   background-image:
-    radial-gradient(70% 120% at 78% 8%, rgba(255, 255, 255, .8), rgba(255, 255, 255, 0) 58%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='300'%3E%3Cfilter id='w' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.014 0.16' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -1.1 0 0 0 0.72'/%3E%3C/filter%3E%3Crect width='600' height='300' filter='url(%23w)'/%3E%3C/svg%3E"),
-    linear-gradient(180deg, rgba(255, 255, 255, .7) 0%, rgba(255, 255, 255, 0) 16%);
-  background-size: auto, 100% 42%, auto;
-  background-repeat: no-repeat, repeat-x, no-repeat;
-  background-position: 0 0, 0 0, 0 0;
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, .35) 44%, transparent 72%);
-          mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, .35) 44%, transparent 72%);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='300'%3E%3Cfilter id='w' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.014 0.16' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -1.1 0 0 0 0.52'/%3E%3C/filter%3E%3Crect width='600' height='300' filter='url(%23w)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, .12) 34%,
+      rgba(255, 255, 255, .3) 66%,
+      rgba(236, 250, 255, .5) 100%);
+  background-size: 100% 55%, auto;
+  background-repeat: repeat-x, no-repeat;
+  background-position: bottom, bottom;
 }
 
 /* Grass, in two rows at different depths. The far row is small and soft, the
    near row is tall and only just out of focus — that gap is the depth of
    field, and it is what stops the bottom edge reading as a flat green stripe. */
-.scene .blades { position: absolute; left: 0; right: 0; bottom: 0; }
+.scene .blades { display: none; position: absolute; left: 0; right: 0; bottom: 0; }
 .scene .blades i {
   position: absolute; bottom: -2vh;
   transform-origin: bottom center;
@@ -340,12 +345,12 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
 /* The download button is the green one, the way installers always were. */
 .btn-primary {
   border-color: var(--lime-deep);
-  background: linear-gradient(180deg, #b6e963 0%, #7ec81d 49%, #4f9209 51%, #8ed534 100%);
+  background: linear-gradient(180deg, #8ed9ff 0%, #2ba0e6 49%, #0d6fb4 51%, #5fc0f4 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .9),
     inset 0 -8px 14px rgba(255, 255, 255, .22),
-    0 6px 14px rgba(50, 100, 10, .35);
-  text-shadow: 0 1px 1px rgba(24, 58, 4, .55);
+    0 6px 14px rgba(8, 70, 115, .35);
+  text-shadow: 0 1px 1px rgba(4, 40, 66, .55);
 }
 
 .btn-ghost {
@@ -403,9 +408,9 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
 .side-block h2 {
   margin: 0; padding: 9px 14px; font-size: 15px; font-weight: 600;
   border-radius: 13px 13px 0 0;
-  color: #fff; text-shadow: 0 1px 1px rgba(24, 58, 4, .5);
-  background: linear-gradient(180deg, #b2e564 0%, #7cc72c 47%, #57a016 53%, #8ed13c 100%);
-  border-bottom: 1px solid #3d7710;
+  color: #fff; text-shadow: 0 1px 1px rgba(4, 40, 66, .5);
+  background: linear-gradient(180deg, #8ed5ff 0%, #2f9fe0 47%, #1173b8 53%, #63c1f2 100%);
+  border-bottom: 1px solid #0f5f96;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75);
 }
 
@@ -428,8 +433,8 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
 .side-nav a.active {
   color: #fff; text-shadow: 0 1px 1px rgba(20, 50, 3, .6);
   border-color: #35680d;
-  background: linear-gradient(180deg, #8ed534 0%, #63ac12 47%, #46820c 53%, #74bd23 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 5px rgba(24, 74, 8, .3);
+  background: linear-gradient(180deg, #63c1f2 0%, #1a8ed0 47%, #0a5f9e 53%, #38a9e0 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 5px rgba(8, 62, 100, .3);
 }
 .side-nav svg { width: 14px; height: 14px; flex: 0 0 auto; color: var(--lime-deep); }
 .side-nav a:hover svg { color: var(--aqua-deep); }
@@ -446,6 +451,20 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
 /* ================================================================== hero == */
 .lidar-hero { padding: clamp(20px, 3vw, 34px) 0 clamp(26px, 4vw, 44px); }
 .hero-grid { display: grid; gap: 34px; align-items: center; grid-template-columns: 1fr; }
+
+/* The photograph is busy where the headline sits, so the copy carries its own
+   patch of haze: a soft light bloom with no edges, bleeding well past the text.
+   Enough to read against a skyline, invisible as a shape. */
+.hero-copy { position: relative; }
+.hero-copy::before {
+  content: ''; position: absolute; inset: -40px -60px -30px -50px; z-index: -1;
+  background: radial-gradient(72% 70% at 38% 50%,
+    rgba(255, 255, 255, .88) 0%,
+    rgba(255, 255, 255, .7) 42%,
+    rgba(255, 255, 255, .32) 68%,
+    rgba(255, 255, 255, 0) 85%);
+  pointer-events: none;
+}
 /* Two columns only once the content column itself is wide enough for them. */
 @media (min-width: 1240px) { .hero-grid { grid-template-columns: 1fr 1.02fr; } }
 
@@ -573,10 +592,10 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
   margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 18px;
   padding: 10px var(--pad);
   border-radius: 13px 13px 0 0;
-  color: #fff; font-weight: 600; text-shadow: 0 1px 1px rgba(24, 58, 4, .5);
-  background: linear-gradient(180deg, #b2e564 0%, #7cc72c 47%, #57a016 53%, #8ed13c 100%);
-  border-bottom: 1px solid #3d7710;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), 0 2px 5px rgba(24, 74, 8, .22);
+  color: #fff; font-weight: 600; text-shadow: 0 1px 1px rgba(4, 40, 66, .5);
+  background: linear-gradient(180deg, #8ed5ff 0%, #2f9fe0 47%, #1173b8 53%, #63c1f2 100%);
+  border-bottom: 1px solid #0f5f96;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), 0 2px 5px rgba(8, 62, 100, .22);
 }
 
 .feature-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); }
@@ -590,9 +609,9 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
   margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 16px;
   padding: 9px var(--pad); font-size: 17px;
   border-radius: 13px 13px 0 0;
-  color: #fff; text-shadow: 0 1px 1px rgba(24, 58, 4, .5);
-  background: linear-gradient(180deg, #b2e564 0%, #7cc72c 47%, #57a016 53%, #8ed13c 100%);
-  border-bottom: 1px solid #3d7710;
+  color: #fff; text-shadow: 0 1px 1px rgba(4, 40, 66, .5);
+  background: linear-gradient(180deg, #8ed5ff 0%, #2f9fe0 47%, #1173b8 53%, #63c1f2 100%);
+  border-bottom: 1px solid #0f5f96;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75);
 }
 .feature p { color: #14536f; font-size: 15px; margin: 0; }
@@ -606,14 +625,14 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
   margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 18px;
   padding: 10px var(--pad);
   border-radius: 13px 13px 0 0;
-  color: #fff; text-shadow: 0 1px 1px rgba(24, 58, 4, .5);
-  background: linear-gradient(180deg, #b2e564 0%, #7cc72c 47%, #57a016 53%, #8ed13c 100%);
-  border-bottom: 1px solid #3d7710;
+  color: #fff; text-shadow: 0 1px 1px rgba(4, 40, 66, .5);
+  background: linear-gradient(180deg, #8ed5ff 0%, #2f9fe0 47%, #1173b8 53%, #63c1f2 100%);
+  border-bottom: 1px solid #0f5f96;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75);
 }
 /* A second strip inside the same pane reads as a sub-section, so it gets all
    four corners rounded and a little air above it. */
-.panel > h2:not(:first-child) { margin-top: 28px; border-radius: 10px; border-bottom-color: #3d7710; }
+.panel > h2:not(:first-child) { margin-top: 28px; border-radius: 10px; border-bottom-color: #0f5f96; }
 .panel-actions { margin-top: 22px; }
 
 .kbd-list { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 11px; }
@@ -643,13 +662,25 @@ kbd {
 .page-head { padding: clamp(34px, 6vw, 66px) 0 clamp(16px, 2vw, 26px); }
 .page-head h1 { font-size: clamp(34px, 5.5vw, 56px); }
 
+/* Same haze patch as the hero: the archive heading also sits over the skyline. */
+.page-head .wrap { position: relative; }
+.page-head .wrap::before {
+  content: ''; position: absolute; inset: -30px -60px -20px -50px; z-index: -1;
+  background: radial-gradient(78% 78% at 34% 50%,
+    rgba(255, 255, 255, .9) 0%,
+    rgba(255, 255, 255, .72) 42%,
+    rgba(255, 255, 255, .34) 68%,
+    rgba(255, 255, 255, 0) 86%);
+  pointer-events: none;
+}
+
 .version-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; }
 .release { --pad: 26px; padding: var(--pad); }
 .release.is-latest {
   border-color: rgba(255, 255, 255, .98);
   box-shadow:
     0 20px 42px rgba(8, 62, 100, .34),
-    0 0 0 2px rgba(126, 196, 32, .55),
+    0 0 0 2px rgba(46, 163, 232, .55),
     inset 0 1px 0 rgba(255, 255, 255, .98);
 }
 
@@ -658,25 +689,25 @@ kbd {
   margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 16px;
   padding: 9px var(--pad);
   border-radius: 13px 13px 0 0;
-  background: linear-gradient(180deg, #b2e564 0%, #7cc72c 47%, #57a016 53%, #8ed13c 100%);
-  border-bottom: 1px solid #3d7710;
+  background: linear-gradient(180deg, #8ed5ff 0%, #2f9fe0 47%, #1173b8 53%, #63c1f2 100%);
+  border-bottom: 1px solid #0f5f96;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75);
 }
 .release-head h2 {
   display: flex; align-items: center; gap: 12px; margin: 0; font-size: 24px; font-weight: 600;
-  color: #fff; text-shadow: 0 1px 1px rgba(24, 58, 4, .5);
+  color: #fff; text-shadow: 0 1px 1px rgba(4, 40, 66, .5);
 }
-.release-date { color: #f2ffdc; font-size: 14px; text-shadow: 0 1px 1px rgba(24, 58, 4, .5); }
+.release-date { color: #e8f6ff; font-size: 14px; text-shadow: 0 1px 1px rgba(4, 40, 66, .5); }
 
 /* The badge rides on the green caption bar, so it is light-on-green, not the
    other way round. */
 .badge {
   font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
   padding: 4px 12px; border-radius: 999px;
-  border: 1px solid #47870f; text-shadow: 0 1px 0 rgba(255, 255, 255, .9);
-  box-shadow: inset 0 1px 0 #fff, 0 2px 5px rgba(24, 74, 8, .35);
+  border: 1px solid #12699f; text-shadow: 0 1px 0 rgba(255, 255, 255, .9);
+  box-shadow: inset 0 1px 0 #fff, 0 2px 5px rgba(8, 62, 100, .35);
 }
-.badge-latest { color: #2f5f0c; background: linear-gradient(180deg, #ffffff, #eafbcd 49%, #d7f2a6 51%, #fbfff2); }
+.badge-latest { color: #0a4a75; background: linear-gradient(180deg, #ffffff, #dcf1ff 49%, #b6e2fb 51%, #f2fbff); }
 .badge-legacy {
   color: #3d5a68; border-color: #7f9aa8;
   background: linear-gradient(180deg, #ffffff, #e4edf2 49%, #cfdde6 51%, #f7fbfd);
@@ -706,7 +737,7 @@ kbd {
 .site-footer h4 { color: #06304a; margin-bottom: 12px; }
 /* The wordmark is white up in the green bar; down here it sits on glass. */
 .site-footer .logo {
-  margin-bottom: 10px; color: #2f5f0c; text-shadow: 0 1px 0 rgba(255, 255, 255, .95);
+  margin-bottom: 10px; color: #0a4a75; text-shadow: 0 1px 0 rgba(255, 255, 255, .95);
 }
 .site-footer .logo em { color: var(--aqua-deep); }
 .site-footer .muted { color: #2c5e7d; }
