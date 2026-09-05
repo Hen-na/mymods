@@ -237,7 +237,7 @@
       ];
 
       planes.forEach(function (plane) {
-        for (var i = 0; i < 1150; i++) {
+        for (var i = 0; i < 800; i++) {
           var a = random();
           var b = random();
           list.push({
@@ -251,7 +251,7 @@
 
       // Two blocks in the corridor, so the sweep has something to wrap around.
       [[-3.4, -2.2, 11, 2.2], [4.2, -2.6, 18, 3]].forEach(function (box) {
-        for (var i = 0; i < 600; i++) {
+        for (var i = 0; i < 420; i++) {
           var face = Math.floor(random() * 5);
           var a = random() * box[3];
           var b = random() * box[3];
@@ -324,8 +324,40 @@
     window.addEventListener('pointerdown', trackPointer, { passive: true });
     document.addEventListener('pointerleave', function () { pointer.active = false; });
 
+    /* Colour strings are the expensive part of the loop: building and parsing
+       an hsla() string per point, thousands of times a frame, costs more than
+       the drawing does. Hue and fade are quantised into a small table instead,
+       built once. */
+    var HUES = 30;
+    var FADES = 8;
+    function buildPalette(lightness) {
+      var table = [];
+      for (var h = 0; h < HUES; h++) {
+        for (var f = 0; f < FADES; f++) {
+          table.push('hsla(' + Math.round(h / (HUES - 1) * 265) + ', 100%, ' + lightness + '%, ' +
+                     (0.85 * (1 - f / FADES)).toFixed(2) + ')');
+        }
+      }
+      return table;
+    }
+
+    var palette = buildPalette(58);
+    // Freshly lit points flare brighter — but keep their depth colour, which is
+    // the whole point of the gradient.
+    var freshPalette = buildPalette(78);
+
+    /* The sweep reads the same at 30fps and costs half as much as at 60. */
+    var FRAME_MS = 1000 / 30;
+    var lastFrame = 0;
+
     function draw(now) {
       if (!running) { return; }
+
+      if (now - lastFrame < FRAME_MS) {
+        frame = window.requestAnimationFrame(draw);
+        return;
+      }
+      lastFrame = now;
 
       var time = (now - start) / 1000;
       // Sized so the corridor fills the window frame it now sits in.
@@ -356,12 +388,14 @@
         var age = time - p.lit;
         if (age > MEMORY_SECONDS) { continue; }
 
-        var alpha = (1 - age / MEMORY_SECONDS) * 0.85;
-        var hue = Math.min(p.z / 28, 1) * 265;             // red near, violet far
-        var size = p.z < 12 ? 2 : 1.4;
+        // Table lookup instead of building a colour string per point.
+        var hueStep = (Math.min(p.z / 28, 1) * (HUES - 1)) | 0;      // red near, violet far
+        var fadeStep = (age / MEMORY_SECONDS * FADES) | 0;
+        if (fadeStep >= FADES) { fadeStep = FADES - 1; }
 
-        ctx.fillStyle = 'hsla(' + hue + ', 100%, ' + (age < 0.12 ? 76 : 58) + '%, ' + alpha + ')';
-        ctx.fillRect(sx, sy, size, size);
+        var slot = hueStep * FADES + fadeStep;
+        ctx.fillStyle = age < 0.12 ? freshPalette[slot] : palette[slot];
+        ctx.fillRect(sx, sy, p.z < 12 ? 2 : 1.4, p.z < 12 ? 2 : 1.4);
       }
 
       frame = window.requestAnimationFrame(draw);

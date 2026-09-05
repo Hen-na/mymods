@@ -159,14 +159,16 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
    brighter and drifts faster, which is what sells the distance between them. */
 .scene .clouds {
   position: absolute; left: -25%; right: -25%; top: 3%; height: 34%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='420'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.017' numOctaves='5' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -2.6 0 0 0 1.32'/%3E%3CfeGaussianBlur stdDeviation='3'/%3E%3C/filter%3E%3Crect width='900' height='420' filter='url(%23c)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='240'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.013 0.036' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -2.6 0 0 0 1.32'/%3E%3CfeGaussianBlur stdDeviation='3'/%3E%3C/filter%3E%3Crect width='420' height='240' filter='url(%23c)'/%3E%3C/svg%3E");
   background-size: 62% 100%;
   -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 66%, transparent 100%);
           mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 66%, transparent 100%);
   opacity: .66;
-  /* The drop shadow is doing the heavy lifting: it is what gives a flat white
-     shape an underside, and so a volume. */
+  /* The drop shadow is what gives a flat white shape an underside. It is baked
+     once, because the layer is moved with transform rather than by shifting the
+     background — the difference between re-blurring every frame and not. */
   filter: blur(2px) drop-shadow(0 5px 7px rgba(70, 135, 180, .3));
+  will-change: transform;
   animation: drift 240s linear infinite;
 }
 .scene .clouds-2 {
@@ -176,7 +178,7 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
   filter: blur(.6px) drop-shadow(0 9px 14px rgba(64, 128, 175, .38));
   animation-duration: 150s; animation-direction: reverse;
 }
-@keyframes drift { to { background-position: 1400px 0; } }
+@keyframes drift { to { transform: translate3d(22%, 0, 0); } }
 
 /* The water band at the foot of the sky: rippled, then lit with a specular
    sheen where the sun hits it. */
@@ -236,9 +238,8 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
    gradients looking like plastic. */
 .scene .grain {
   position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: .07;
-  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: .05;
 }
 
 /* Rising bubbles: a highlight dot and a rim, nothing more. */
@@ -289,8 +290,6 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
     inset 0 1px 0 rgba(255, 255, 255, .98),
     inset 0 -14px 22px -14px rgba(255, 255, 255, .85),
     inset 0 0 0 1px rgba(120, 190, 230, .35);
-  backdrop-filter: blur(16px) saturate(1.6);
-  -webkit-backdrop-filter: blur(16px) saturate(1.6);
 }
 /* The shine: a highlight over the top half with a curved lower edge. */
 .glass::before {
@@ -494,8 +493,6 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
     0 26px 55px rgba(6, 55, 95, .45),
     inset 0 1px 0 rgba(255, 255, 255, .98),
     inset 0 0 0 1px rgba(120, 190, 230, .4);
-  backdrop-filter: blur(16px) saturate(1.6);
-  -webkit-backdrop-filter: blur(16px) saturate(1.6);
 }
 .titlebar {
   display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 6px 0 10px;
