@@ -50,7 +50,13 @@ body {
   background: var(--sky-mid);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  /* A column at least as tall as the window, so a short page still pins its
+     footer to the bottom edge instead of leaving a strip of wallpaper below. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
+body > .layout { flex: 1 0 auto; }
 
 img { max-width: 100%; height: auto; display: block; }
 a { color: var(--aqua-deep); text-decoration: none; }
@@ -695,7 +701,9 @@ kbd {
 .notes li::marker { color: var(--aqua-deep); }
 
 /* ================================================================ footer == */
-.site-footer { margin-top: clamp(30px, 5vw, 60px); padding: 0 0 22px; }
+/* margin-top:auto pushes it to the bottom on short pages; the padding that used
+   to sit under it is gone, so the pane meets the bottom edge with no gap. */
+.site-footer { flex: 0 0 auto; margin-top: auto; padding: clamp(30px, 5vw, 60px) 0 0; }
 .footer-glass { padding: 32px 28px 24px; border-radius: 16px 16px 0 0; }
 .footer-grid { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
 .site-footer h4 { color: #06304a; margin-bottom: 12px; }

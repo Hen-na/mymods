@@ -19,6 +19,11 @@
      is switched off rather than fighting the layout. */
   var FLOW_LAYOUT = window.matchMedia('(max-width: 820px)');
 
+  /* How much of a window has to stay on the desktop when it is dragged to an
+     edge: enough of its width to grab, and its whole title bar at the bottom. */
+  var EDGE_KEEP = 90;
+  var BAR_KEEP = 26;
+
   function element(tag, className, text) {
     var node = document.createElement(tag);
     if (className) { node.className = className; }
@@ -117,27 +122,37 @@
       var left = moveEvent.clientX - host.left - grabX;
       var top = moveEvent.clientY - host.top - grabY;
 
-      // Keep a grabbable strip on screen: the window can hang off an edge, but
-      // never so far that its title bar becomes unreachable.
-      var maxLeft = desktop.clientWidth - 60;
-      var maxTop = desktop.clientHeight - 26;
-      win.style.left = Math.max(-(win.offsetWidth - 60), Math.min(left, maxLeft)) + 'px';
+      // The title bar must stay reachable, exactly like on a real desktop: a
+      // window may hang off the left, the right or the bottom, but never far
+      // enough that the bar you grab, close or restore it by is gone. Dragged
+      // all the way down it parks as a strip along the bottom edge — it does
+      // not push the desktop taller.
+      var minLeft = -(win.offsetWidth - EDGE_KEEP);
+      var maxLeft = desktop.clientWidth - EDGE_KEEP;
+      var maxTop = desktop.clientHeight - BAR_KEEP;
+
+      win.style.left = Math.max(minLeft, Math.min(left, maxLeft)) + 'px';
       win.style.top = Math.max(0, Math.min(top, maxTop)) + 'px';
     }
 
     function end() {
       win.classList.remove('dragging');
-      growDesktop();
       bar.removeEventListener('pointermove', move);
       bar.removeEventListener('pointerup', end);
       bar.removeEventListener('pointercancel', end);
-      if (bar.hasPointerCapture && bar.hasPointerCapture(event.pointerId)) {
-        bar.releasePointerCapture(event.pointerId);
-      }
+      try {
+        if (bar.hasPointerCapture && bar.hasPointerCapture(event.pointerId)) {
+          bar.releasePointerCapture(event.pointerId);
+        }
+      } catch (error) { /* already gone */ }
     }
 
     // Capture on the bar so the drag survives the pointer outrunning the window.
-    if (bar.setPointerCapture) { bar.setPointerCapture(event.pointerId); }
+    // Wrapped: a pointer that has already been released throws here, and that
+    // must not take the drag handler down with it.
+    try {
+      if (bar.setPointerCapture) { bar.setPointerCapture(event.pointerId); }
+    } catch (error) { /* no live pointer — the move listeners still work */ }
     bar.addEventListener('pointermove', move);
     bar.addEventListener('pointerup', end);
     bar.addEventListener('pointercancel', end);
@@ -179,16 +194,20 @@
 
       function end() {
         win.classList.remove('resizing');
+        clampIntoDesktop(win);
         grip.removeEventListener('pointermove', move);
         grip.removeEventListener('pointerup', end);
         grip.removeEventListener('pointercancel', end);
-        if (grip.hasPointerCapture && grip.hasPointerCapture(event.pointerId)) {
-          grip.releasePointerCapture(event.pointerId);
-        }
-        growDesktop();
+        try {
+          if (grip.hasPointerCapture && grip.hasPointerCapture(event.pointerId)) {
+            grip.releasePointerCapture(event.pointerId);
+          }
+        } catch (error) { /* already gone */ }
       }
 
-      if (grip.setPointerCapture) { grip.setPointerCapture(event.pointerId); }
+      try {
+        if (grip.setPointerCapture) { grip.setPointerCapture(event.pointerId); }
+      } catch (error) { /* see the note in startDrag */ }
       grip.addEventListener('pointermove', move);
       grip.addEventListener('pointerup', end);
       grip.addEventListener('pointercancel', end);
@@ -208,7 +227,6 @@
     bar.addEventListener('dblclick', function (event) {
       if (event.target.closest('.tb-btns')) { return; }
       win.classList.toggle('shaded');
-      growDesktop();
     });
 
     win.addEventListener('pointerdown', function () { focusWindow(win); });
@@ -218,18 +236,17 @@
     var close = win.querySelector('[data-act="close"]');
 
     if (shade) {
-      shade.addEventListener('click', function () { win.classList.toggle('shaded'); growDesktop(); });
+      shade.addEventListener('click', function () { win.classList.toggle('shaded'); });
     }
     if (max) {
       max.addEventListener('click', function () {
         win.classList.toggle('maximized');
         win.classList.remove('shaded');
         focusWindow(win);
-        growDesktop();
       });
     }
     if (close) {
-      close.addEventListener('click', function () { win.hidden = true; growDesktop(); });
+      close.addEventListener('click', function () { win.hidden = true; });
     }
 
     wireResize(win);
@@ -241,34 +258,41 @@
   /* ------------------------------------------------------------- layout --- */
   // Windows carry their intended spot in data-x / data-y. On load and on resize
   // those get clamped into the desktop, so nothing opens off-screen on a
-  // narrower display, and the desktop is grown to fit the lowest window.
-  // A window the visitor has dragged is left exactly where they put it.
-  // The desktop clips what overflows it, so it has to be at least as tall as the
-  // lowest window — including one the visitor has just dragged downwards.
-  function growDesktop() {
-    if (FLOW_LAYOUT.matches) { desktop.style.minHeight = ''; return; }
+  // narrower display. A window the visitor has dragged is left where they put
+  // it — but still pulled back if the window has since been made smaller.
+  //
+  // The desktop is deliberately a fixed screen: it does not grow to fit windows.
+  // Growing it was what let a window dragged downwards stretch the page without
+  // limit, and what made windows vanish off the bottom instead of parking there.
+  function clampIntoDesktop(win) {
+    var maxLeft = desktop.clientWidth - EDGE_KEEP;
+    var minLeft = -(win.offsetWidth - EDGE_KEEP);
+    var maxTop = desktop.clientHeight - BAR_KEEP;
 
-    var lowest = 0;
-    windows.forEach(function (win) {
-      if (!win.hidden) { lowest = Math.max(lowest, win.offsetTop + win.offsetHeight); }
-    });
-    desktop.style.minHeight = (lowest + 20) + 'px';
+    var left = parseInt(win.style.left, 10) || 0;
+    var top = parseInt(win.style.top, 10) || 0;
+
+    win.style.left = Math.max(minLeft, Math.min(left, maxLeft)) + 'px';
+    win.style.top = Math.max(0, Math.min(top, maxTop)) + 'px';
   }
 
   function layoutWindows() {
-    if (FLOW_LAYOUT.matches) { desktop.style.minHeight = ''; return; }
+    if (FLOW_LAYOUT.matches) { return; }
 
     var width = desktop.clientWidth;
 
     windows.forEach(function (win) {
-      if (win.dataset.moved || win.hidden) { return; }
-      var x = parseInt(win.dataset.x, 10) || 0;
-      var y = parseInt(win.dataset.y, 10) || 0;
-      win.style.left = Math.max(8, Math.min(x, width - win.offsetWidth - 8)) + 'px';
-      win.style.top = y + 'px';
-    });
+      if (win.hidden) { return; }
 
-    growDesktop();
+      if (!win.dataset.moved) {
+        var x = parseInt(win.dataset.x, 10) || 0;
+        var y = parseInt(win.dataset.y, 10) || 0;
+        win.style.left = Math.max(8, Math.min(x, width - win.offsetWidth - 8)) + 'px';
+        win.style.top = y + 'px';
+      }
+
+      clampIntoDesktop(win);
+    });
   }
 
   // Once dragged, a window stops being repositioned by the layout pass.
