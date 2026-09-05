@@ -34,6 +34,47 @@
     });
   }
 
+  /* ---------------------------------------------------------- paragraphs -- */
+  // Post text is plain text — pasting HTML into posts.js would be a way to
+  // break the page, so it is never parsed as markup. The one exception is a
+  // link written [like this](https://example.com): the anchor is built from
+  // DOM nodes, and the URL is checked before it is used.
+  var LINK_PATTERN = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+
+  function safeHref(url) {
+    // http(s), mail, and same-site paths only. Anything else (javascript:,
+    // data:, …) is dropped and the label is left as plain text.
+    return /^(https?:\/\/|mailto:|#|\.{0,2}\/|[\w.-]+\.(html|jar|png|webp))/i.test(url) ? url : null;
+  }
+
+  function paragraph(text) {
+    var node = element('p');
+    var cursor = 0;
+    var match;
+
+    LINK_PATTERN.lastIndex = 0;
+    while ((match = LINK_PATTERN.exec(text)) !== null) {
+      if (match.index > cursor) {
+        node.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+      }
+
+      var href = safeHref(match[2]);
+      if (href) {
+        var link = element('a', null, match[1]);
+        link.href = href;
+        if (/^https?:/i.test(href)) { link.target = '_blank'; link.rel = 'noopener'; }
+        node.appendChild(link);
+      } else {
+        node.appendChild(document.createTextNode(match[1]));
+      }
+
+      cursor = match.index + match[0].length;
+    }
+
+    node.appendChild(document.createTextNode(text.slice(cursor)));
+    return node;
+  }
+
   /* ======================================================= window manager == */
   var desktop = document.querySelector('.desktop');
   var windows = [].slice.call(document.querySelectorAll('.window'));
@@ -104,6 +145,59 @@
     event.preventDefault();
   }
 
+  /* ------------------------------------------------------------ resizing -- */
+  // Only windows carrying a [data-resize] grip can be resized — right now that
+  // is blog.exe alone, since it is the only one with enough in it to be worth
+  // making bigger. Width goes on the window, height on the scrolling body.
+  function wireResize(win) {
+    var grip = win.querySelector('[data-resize]');
+    var body = win.querySelector('.win-body');
+    if (!grip || !body) { return; }
+
+    grip.addEventListener('pointerdown', function (event) {
+      if (FLOW_LAYOUT.matches) { return; }
+      if (event.button !== undefined && event.button !== 0) { return; }
+
+      var startX = event.clientX;
+      var startY = event.clientY;
+      var startWidth = win.offsetWidth;
+      var startHeight = body.offsetHeight;
+
+      focusWindow(win);
+      win.classList.add('resizing');
+      win.classList.remove('maximized');
+
+      function move(moveEvent) {
+        var width = startWidth + (moveEvent.clientX - startX);
+        var height = startHeight + (moveEvent.clientY - startY);
+
+        // Never smaller than usable, never wider than what is left of the desktop.
+        win.style.width = Math.max(300, Math.min(width, desktop.clientWidth - win.offsetLeft - 8)) + 'px';
+        body.style.maxHeight = 'none';
+        body.style.height = Math.max(140, height) + 'px';
+      }
+
+      function end() {
+        win.classList.remove('resizing');
+        grip.removeEventListener('pointermove', move);
+        grip.removeEventListener('pointerup', end);
+        grip.removeEventListener('pointercancel', end);
+        if (grip.hasPointerCapture && grip.hasPointerCapture(event.pointerId)) {
+          grip.releasePointerCapture(event.pointerId);
+        }
+        growDesktop();
+      }
+
+      if (grip.setPointerCapture) { grip.setPointerCapture(event.pointerId); }
+      grip.addEventListener('pointermove', move);
+      grip.addEventListener('pointerup', end);
+      grip.addEventListener('pointercancel', end);
+
+      event.preventDefault();
+      event.stopPropagation();
+    });
+  }
+
   /* ------------------------------------------------------ window controls -- */
   function wireWindow(win) {
     var bar = win.querySelector('.title-bar');
@@ -137,6 +231,8 @@
     if (close) {
       close.addEventListener('click', function () { win.hidden = true; growDesktop(); });
     }
+
+    wireResize(win);
   }
 
   windows.forEach(wireWindow);
@@ -256,8 +352,8 @@
         article.appendChild(meta);
       }
 
-      (post.body || []).forEach(function (paragraph) {
-        article.appendChild(element('p', null, paragraph));
+      (post.body || []).forEach(function (text) {
+        article.appendChild(paragraph(text));
       });
 
       host.appendChild(article);
@@ -347,22 +443,303 @@
   }
 
   /* ------------------------------------------------------------ cd player -- */
-  // Set window.BLOG_NOW_PLAYING in assets/data/posts.js to fill this in.
-  function renderNowPlaying() {
-    var artistOut = document.getElementById('cd-artist');
-    var trackOut = document.getElementById('cd-track');
-    if (!artistOut || !trackOut) { return; }
+  // Type in the Track field and the player looks the song up, then fills in the
+  // artist and the sleeve from the picked result.
+  //
+  // The lookup is the iTunes Search API: no key, no account, and it allows
+  // browser requests directly — which Genius and Musixmatch both do not, and
+  // whose keys could not be kept secret on a static page anyway. Nothing is
+  // requested until someone actually types.
+  var SEARCH_URL = 'https://itunes.apple.com/search?media=music&entity=song&limit=8&term=';
+  var NOW_PLAYING_KEY = 'hen_na_nowplaying';
 
-    var playing = typeof window.BLOG_NOW_PLAYING === 'string' ? window.BLOG_NOW_PLAYING.trim() : '';
-    if (!playing) {
-      artistOut.textContent = '—';
-      trackOut.textContent = 'nothing right now';
+  var artistOut = document.getElementById('cd-artist');
+  var trackInput = document.getElementById('cd-track');
+  var resultList = document.getElementById('cd-results');
+  var cover = document.getElementById('cd-cover');
+
+  var results = [];
+  var highlighted = -1;
+  var searchTimer = 0;
+  var inFlight = null;
+
+  function showNowPlaying(artist, track, art) {
+    if (artistOut) { artistOut.textContent = artist || '—'; }
+    if (trackInput) { trackInput.value = track || ''; }
+    if (cover) {
+      if (art) { cover.src = art; cover.hidden = false; }
+      else { cover.removeAttribute('src'); cover.hidden = true; }
+    }
+  }
+
+  function closeResults() {
+    if (!resultList) { return; }
+    resultList.hidden = true;
+    resultList.textContent = '';
+    if (trackInput) { trackInput.setAttribute('aria-expanded', 'false'); }
+    results = [];
+    highlighted = -1;
+  }
+
+  function highlight(index) {
+    var items = resultList.children;
+    for (var i = 0; i < items.length; i++) {
+      items[i].setAttribute('aria-selected', String(i === index));
+    }
+    highlighted = index;
+    if (items[index] && items[index].scrollIntoView) {
+      items[index].scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function choose(index) {
+    var hit = results[index];
+    if (!hit) { return; }
+
+    showNowPlaying(hit.artist, hit.track, hit.art);
+    closeResults();
+
+    try {
+      localStorage.setItem(NOW_PLAYING_KEY, JSON.stringify(hit));
+    } catch (error) {
+      /* No storage — the pick still stands for this pageview. */
+    }
+  }
+
+  function note(text) {
+    resultList.textContent = '';
+    resultList.appendChild(element('li', 'cd-note', text));
+    resultList.hidden = false;
+  }
+
+  function renderResults() {
+    resultList.textContent = '';
+
+    results.forEach(function (hit, index) {
+      var item = element('li');
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', 'false');
+
+      if (hit.thumb) {
+        var art = document.createElement('img');
+        art.src = hit.thumb;
+        art.alt = '';
+        art.loading = 'lazy';
+        item.appendChild(art);
+      }
+
+      var text = element('span', 'cd-r-text');
+      text.appendChild(element('span', 'cd-r-track', hit.track));
+      text.appendChild(element('span', 'cd-r-artist', hit.artist));
+      item.appendChild(text);
+
+      // mousedown, not click: the input's blur would close the list first.
+      item.addEventListener('mousedown', function (event) {
+        event.preventDefault();
+        choose(index);
+      });
+      item.addEventListener('mouseenter', function () { highlight(index); });
+
+      resultList.appendChild(item);
+    });
+
+    resultList.hidden = false;
+    trackInput.setAttribute('aria-expanded', 'true');
+    highlighted = -1;
+  }
+
+  // Opened straight from disk (file://) the page has no real origin, so the
+  // browser blocks the plain fetch outright. The API also answers as JSONP, and
+  // a <script> tag is not subject to that restriction — so that is the fallback,
+  // and it is what makes search work on a double-clicked file as well as on the
+  // live site.
+  var jsonpSeq = 0;
+
+  function jsonp(url) {
+    return new Promise(function (resolve, reject) {
+      var name = 'cdSearch' + (++jsonpSeq);
+      var script = document.createElement('script');
+      var timer = window.setTimeout(function () { finish(); reject(new Error('timeout')); }, 9000);
+
+      function finish() {
+        window.clearTimeout(timer);
+        try { delete window[name]; } catch (error) { window[name] = undefined; }
+        if (script.parentNode) { script.parentNode.removeChild(script); }
+      }
+
+      window[name] = function (data) { finish(); resolve(data); };
+      script.onerror = function () { finish(); reject(new Error('network')); };
+      script.src = url + '&callback=' + name;
+      document.head.appendChild(script);
+    });
+  }
+
+  function requestSearch(query) {
+    var url = SEARCH_URL + encodeURIComponent(query);
+
+    // On file:// there is no point trying fetch at all — it always fails.
+    if (location.protocol === 'file:') { return jsonp(url); }
+
+    if (inFlight) { inFlight.abort(); }
+    inFlight = typeof AbortController === 'function' ? new AbortController() : null;
+
+    return fetch(url, inFlight ? { signal: inFlight.signal } : undefined)
+      .then(function (response) {
+        if (!response.ok) { throw new Error('search failed'); }
+        return response.json();
+      })
+      .catch(function (error) {
+        if (error && error.name === 'AbortError') { throw error; }
+        return jsonp(url);   // blocked or offline — try the script route
+      });
+  }
+
+  function search(query) {
+    requestSearch(query)
+      .then(function (data) {
+        results = (data.results || []).map(function (row) {
+          var thumb = row.artworkUrl100 || row.artworkUrl60 || '';
+          return {
+            track: row.trackName || '',
+            artist: row.artistName || '',
+            thumb: thumb,
+            // The size lives in the filename, so a bigger sleeve is a swap away.
+            art: thumb ? thumb.replace('100x100bb', '300x300bb') : ''
+          };
+        }).filter(function (hit) { return hit.track && hit.artist; });
+
+        if (!results.length) { note('nothing found'); return; }
+        renderResults();
+      })
+      .catch(function (error) {
+        if (error && error.name === 'AbortError') { return; }
+        results = [];
+        note('search unavailable');
+      });
+  }
+
+  function wireCdPlayer() {
+    if (!trackInput || !resultList) { return; }
+
+    trackInput.addEventListener('input', function () {
+      var query = trackInput.value.trim();
+      window.clearTimeout(searchTimer);
+
+      if (query.length < 2) { closeResults(); return; }
+      // Debounced: one request after the typing stops, not one per keystroke.
+      searchTimer = window.setTimeout(function () { search(query); }, 320);
+    });
+
+    trackInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') { closeResults(); return; }
+      if (resultList.hidden || !results.length) { return; }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        highlight((highlighted + 1) % results.length);
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        highlight((highlighted - 1 + results.length) % results.length);
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        choose(highlighted >= 0 ? highlighted : 0);
+      }
+    });
+
+    trackInput.addEventListener('blur', function () {
+      window.setTimeout(closeResults, 120);
+    });
+  }
+
+  /* -------------------------------------------------------- transport keys -- */
+  // Nothing is played — there is no audio here and never was. The keys move the
+  // needle and press in, which is all a CD Player on a webpage ever did.
+  function wireTransport() {
+    var keys = document.querySelector('.cd-keys');
+    var needle = document.getElementById('cd-seek');
+    var playKey = document.getElementById('cd-play');
+    if (!keys || !needle) { return; }
+
+    var position = 0;      // 0-100, where the needle sits
+    var ticker = 0;
+
+    function place() {
+      needle.style.left = 'calc(' + position + '% - ' + (position / 100 * 8) + 'px)';
+    }
+
+    function stopTicking() {
+      window.clearInterval(ticker);
+      ticker = 0;
+      if (playKey) {
+        playKey.setAttribute('aria-pressed', 'false');
+        playKey.innerHTML = '&#9654;';
+        playKey.setAttribute('aria-label', 'Play');
+      }
+    }
+
+    function startTicking() {
+      if (ticker) { return; }
+      ticker = window.setInterval(function () {
+        position = Math.min(100, position + 0.9);
+        place();
+        if (position >= 100) { stopTicking(); }
+      }, 400);
+      if (playKey) {
+        playKey.setAttribute('aria-pressed', 'true');
+        playKey.innerHTML = '&#10074;&#10074;';
+        playKey.setAttribute('aria-label', 'Pause');
+      }
+    }
+
+    keys.addEventListener('click', function (event) {
+      var key = event.target.closest('[data-cd]');
+      if (!key) { return; }
+      var action = key.dataset.cd;
+
+      if (action === 'play') {
+        if (ticker) { stopTicking(); } else { startTicking(); }
+      } else if (action === 'stop') {
+        stopTicking();
+        position = 0;
+        place();
+      } else if (action === 'rew') {
+        position = Math.max(0, position - 8);
+        place();
+      } else if (action === 'ff') {
+        position = Math.min(100, position + 8);
+        place();
+      } else if (action === 'rec') {
+        key.classList.add('blinking');
+        window.setTimeout(function () { key.classList.remove('blinking'); }, 500);
+      }
+    });
+
+    place();
+  }
+
+  // On load: the visitor's own pick wins, otherwise whatever the author set in
+  // window.BLOG_NOW_PLAYING ("Artist — Track").
+  function renderNowPlaying() {
+    if (!artistOut || !trackInput) { return; }
+
+    var saved = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(NOW_PLAYING_KEY) || 'null');
+    } catch (error) {
+      saved = null;
+    }
+
+    if (saved && saved.track) {
+      showNowPlaying(saved.artist, saved.track, saved.art);
       return;
     }
 
-    var split = playing.split(/\s+[—-]\s+/);   // "Artist — Track" or "Artist - Track"
-    artistOut.textContent = split[0] || playing;
-    trackOut.textContent = split.slice(1).join(' - ') || '—';
+    var playing = typeof window.BLOG_NOW_PLAYING === 'string' ? window.BLOG_NOW_PLAYING.trim() : '';
+    if (!playing) { showNowPlaying('', '', ''); return; }
+
+    // Hyphen, en dash or em dash, whichever the author typed.
+    var split = playing.split(/\s+[—–-]\s+/);
+    showNowPlaying(split[0] || playing, split.slice(1).join(' - '), '');
   }
 
   renderPosts();
@@ -370,5 +747,7 @@
   renderGuestbook();
   wireGuestbook();
   renderNowPlaying();
+  wireCdPlayer();
+  wireTransport();
 
 })();

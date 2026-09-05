@@ -1,52 +1,56 @@
 /* ==========================================================================
-   Blog entries. Newest first — add a new object at the top and it appears.
+   ЗАПИСИ БЛОГА. Новые — сверху: добавляешь объект в начало списка, и он
+   появляется на странице первым. Подробная инструкция: BLOG-HOWTO.md
 
-   These first two are STARTER DRAFTS written from the mod's source: rewrite
-   them in your own voice, they are only here so the layout has something real
-   to hold. "mood" and "music" are the old blog convention; set them to
-   whatever you like, or delete the fields and the line disappears.
+   Шаблон записи:
+
+     {
+       date:  '2026-09-14',              // ГГГГ-ММ-ДД
+       title: 'Заголовок',
+       mood:  'настроение',              // необязательно
+       music: 'Исполнитель — Трек',      // необязательно
+       body: [
+         'Первый абзац.',
+         'Второй абзац. Ссылка: [текст ссылки](https://example.com)'
+       ]
+     },
+
+   Каждая строка в body — отдельный абзац. HTML внутри не работает (текст
+   вставляется как текст, а не как разметка), но ссылки в квадратных скобках
+   поддерживаются.
    ========================================================================== */
-/* Shown in the CD Player window. Format: 'Artist — Track'. Leave it empty and
-   the player just says there is nothing playing. */
-window.BLOG_NOW_PLAYING = '';
+
+/* Что показано в CD Player по умолчанию, пока посетитель сам не выбрал трек
+   через поиск в поле Track. Формат: 'Исполнитель — Трек'. Пусто — плеер ничего
+   не покажет. */
+window.BLOG_NOW_PLAYING = '9mice & Kai Angel – Phoenix';
 
 window.BLOG_POSTS = [
-  {
+    {
     date: '2026-09-05',
-    title: 'The site got a time machine',
-    mood: 'nostalgic',
-    music: '',
+    title: 'Пися',
+    mood: 'бла бла бла пук пук пук пук',
+    music: 'Kai Angel - andy warhol',
     body: [
-      'Ripped out about 1.2 MB of libraries from the old template — jQuery, Bootstrap, Owl Carousel, ' +
-      'MixItUp, an accordion script that was never even called. Everything it actually did now fits in ' +
-      'one stylesheet and one 16 KB script.',
-
-      'Then I put the whole thing in glass. Sky, grass, bubbles, gel buttons, window frames — and not ' +
-      'one image file: it is all gradients. The scanner demo lives in an Aero window now, and the point ' +
-      'cloud only lights up around your cursor, so you paint the room in by moving the mouse.',
-
-      'And this page, because a site without a blog is just a brochure. No frameworks here either. ' +
-      'View source if you like, there is not much to see.'
+      'я фанат кай ангела',
     ]
   },
   {
-    date: '2026-08-09',
-    title: 'LiDAR Scanner 1.0.0 is out',
-    mood: 'wired',
+    date: '2026-09-05',
+    title: 'Привет первая статья в моем блоге!',
+    mood: 'нейрослоп',
     music: '',
     body: [
-      'First public build. Hold right mouse button and the scanner fires 110 raycasts a tick into an ' +
-      'expanding ring, and every surface they touch becomes a point that hangs around for 6000 ticks ' +
-      'before fading. The world itself renders black, so the cloud is the only thing you can see.',
+      'Блог наконец работает, так что это первая запись — заодно проверка, что всё ' +
+      'на месте: заголовок, дата, жёлтая полоска с настроением и вот эти абзацы.',
 
-      'The part I am happiest with is boring: the points live in flat primitive arrays with a ring ' +
-      'cursor and a long-keyed index that collapses repeat hits onto the same slot. 200 000 points, a ' +
-      'few megabytes, and drawing them is a straight array walk with no per-point objects.',
+      'Дальше тут будут заметки про мод, про сайт и про всё остальное, что захочется ' +
+      'записать. Это заглушка, её можно спокойно переписать или удалить целиком.',
 
-      'Mobs are sampled from their own render model, so a spider keeps its legs and a creeper its four ' +
-      'feet. Nothing about the entity is touched — it is read, and points are written. That is all.',
-
-      'Grab it from the versions page. Fabric, Minecraft 26.2, CC0 — do whatever you want with it.'
+      'Окна на этой странице таскаются за заголовок, сворачиваются в полоску и ' +
+      'закрываются. Закрыл случайно — открой заново иконкой на рабочем столе слева. ' +
+      'Сам мод лежит [на главной](index.html).'
     ]
-  }
+  },
+  
 ];

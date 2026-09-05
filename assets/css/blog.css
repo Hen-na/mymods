@@ -201,6 +201,17 @@ a:active { color: #e00; }
 }
 .status-bar > span:first-child { flex: 1 1 auto; }
 
+/* The corner grip: three diagonal ridges, and the only handle that resizes. */
+.grip {
+  width: 16px; padding: 0 !important; border: 0 !important;
+  cursor: nwse-resize; touch-action: none; flex: 0 0 auto;
+  background:
+    linear-gradient(135deg, transparent 0 42%, var(--hi) 42% 52%, var(--sh) 52% 62%, transparent 62%),
+    linear-gradient(135deg, transparent 0 62%, var(--hi) 62% 72%, var(--sh) 72% 82%, transparent 82%),
+    linear-gradient(135deg, transparent 0 82%, var(--hi) 82% 92%, var(--sh) 92% 100%);
+}
+.window.resizing { user-select: none; }
+
 /* ------------------------------------------------------------ marquee ---- */
 .marquee {
   overflow: hidden; white-space: nowrap; margin: 0 0 7px; padding: 3px 0;
@@ -317,22 +328,79 @@ a:active { color: #e00; }
   transform: translate(-50%, -50%); border-radius: 50%;
   background: var(--face); border: 1px solid #666;
 }
+/* Once a cover is picked it covers the disc art entirely, spindle and all. */
+.cd-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.cd-art:has(img:not([hidden]))::after { display: none; }
+
 .cd-fields { flex: 1 1 auto; display: grid; gap: 4px; align-content: start; font-size: 11px; }
-.cd-field { display: flex; align-items: center; gap: 5px; }
-.cd-field label { width: 34px; }
-.cd-field output {
-  flex: 1 1 auto; padding: 2px 4px; background: #fff; overflow: hidden;
-  white-space: nowrap; text-overflow: ellipsis;
+.cd-field { display: flex; align-items: center; gap: 5px; margin: 0; }
+.cd-field label { width: 34px; flex: 0 0 auto; }
+.cd-field output,
+.cd-field input {
+  flex: 1 1 auto; min-width: 0; padding: 2px 4px;
+  background: #fff; color: #000; font: 11px var(--font);
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
   border: 2px solid; border-color: var(--sh) var(--hi) var(--hi) var(--sh);
 }
-.cd-seek { height: 12px; padding: 2px; border: 2px solid; border-color: var(--sh) var(--hi) var(--hi) var(--sh); background: #fff; }
-.cd-seek i { display: block; width: 8px; height: 100%; background: var(--face); border: 1px solid #000; }
+.cd-field input:focus { outline: 1px dotted #000; outline-offset: -3px; }
+
+/* ------------------------------------------------------- track search --- */
+/* The results drop below the window's own edge, so this one body must not clip
+   its contents the way the scrolling ones do. */
+#cd-win .win-body { overflow: visible; }
+
+.cd-search { position: relative; }
+.cd-results {
+  position: absolute; left: 39px; right: 0; top: 100%; z-index: 60;
+  margin: 1px 0 0; padding: 0; list-style: none;
+  max-height: 168px; overflow-y: auto;
+  background: #fff;
+  border: 2px solid; border-color: var(--sh) var(--hi) var(--hi) var(--sh);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, .35);
+}
+.cd-results[hidden] { display: none; }
+.cd-results li {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 5px; font-size: 11px; line-height: 1.25; cursor: default;
+}
+.cd-results li[aria-selected="true"] { background: var(--navy); color: #fff; }
+.cd-results li[aria-selected="true"] .cd-r-artist { color: #b9d4ff; }
+.cd-results img {
+  width: 26px; height: 26px; flex: 0 0 auto;
+  border: 1px solid var(--sh); background: var(--face); object-fit: cover;
+}
+.cd-r-text { min-width: 0; }
+.cd-r-track { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cd-r-artist { display: block; color: #555; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cd-note { padding: 4px 6px; font-size: 11px; color: #555; }
+.cd-seek {
+  position: relative; height: 12px; padding: 2px;
+  border: 2px solid; border-color: var(--sh) var(--hi) var(--hi) var(--sh); background: #fff;
+}
+.cd-seek i {
+  position: absolute; top: 2px; bottom: 2px; left: 0; width: 8px;
+  background: var(--face); border: 1px solid #000;
+  transition: left .18s linear;
+}
+
+/* Transport keys. They control nothing but the needle — no audio is loaded —
+   but they press in properly, which is the whole point of a fake CD player. */
 .cd-keys { display: flex; gap: 3px; }
-.cd-keys b {
-  flex: 1 1 auto; text-align: center; padding: 3px 0; font-size: 10px;
+.cd-keys button {
+  flex: 1 1 auto; padding: 4px 0; font: 10px/1 var(--font); color: #000; cursor: default;
   background: var(--face);
   border: 2px solid; border-color: var(--hi) var(--sh-2) var(--sh-2) var(--hi);
+  box-shadow: inset 1px 1px 0 var(--hi-2), inset -1px -1px 0 var(--sh);
 }
+.cd-keys button:active,
+.cd-keys button[aria-pressed="true"] {
+  border-color: var(--sh-2) var(--hi) var(--hi) var(--sh-2);
+  box-shadow: none;
+  padding: 5px 0 3px;
+}
+.cd-keys button:focus-visible { outline: 1px dotted #000; outline-offset: -4px; }
+.cd-keys button[data-cd="rec"] { color: #a00000; }
+.cd-keys button[data-cd="rec"].blinking { color: #fff; background: #cc0000; }
 
 /* ----------------------------------------------------------- guestbook --- */
 .gb-form { display: grid; gap: 5px; }
@@ -369,12 +437,18 @@ a:active { color: #e00; }
 }
 
 /* --------------------------------------------------------- blog footer --- */
+/* Pinned to the bottom of the screen, not to the end of the desktop: the badges
+   used to drift downwards as windows were dragged about, because the desktop
+   grew to fit them. Sits below the windows, so it reads as part of the wallpaper
+   and a window dragged over it wins. */
 .blog-footer {
-  position: relative; z-index: 1;
-  margin: 0 auto; padding: 10px 8px 24px;
-  max-width: 760px; text-align: center; font-size: 11px;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  padding: 8px 8px 10px;
+  text-align: center; font-size: 11px;
   color: #d8f5f5; text-shadow: 1px 1px 0 #004545;
+  pointer-events: none;              /* only the links themselves are clickable */
 }
+.blog-footer a, .blog-footer .badges { pointer-events: auto; }
 .blog-footer a { color: #bfefff; }
 .blog-footer .badges { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 7px; }
 body.wallpaper-stars .blog-footer { color: #ccd6ff; text-shadow: 1px 1px 0 #000; }
@@ -383,7 +457,8 @@ body.wallpaper-stars .blog-footer { color: #ccd6ff; text-shadow: 1px 1px 0 #000;
 /* Below this width, absolute windows are unusable: they stack in flow instead
    and dragging is switched off by the script. */
 @media (max-width: 820px) {
-  .desktop { padding: 6px; overflow: visible; }
+  /* The footer is fixed, so the stacked windows need room to end above it. */
+  .desktop { padding: 6px 6px 130px; overflow: visible; }
   .desk-icons {
     position: static; width: auto; grid-auto-flow: column; justify-content: start;
     gap: 6px; margin-bottom: 10px;

@@ -12,7 +12,7 @@
   <title>Hen_na's Blog</title>
   <link rel="icon" href="assets/images/Grass_Block.webp" type="image/webp">
 
-  <link rel="stylesheet" href="assets/css/blog.css?v=4">
+  <link rel="stylesheet" href="assets/css/blog.css?v=10">
 </head>
 
 <body>
@@ -72,6 +72,7 @@
       <div class="status-bar">
         <span>Done</span>
         <span>Internet zone</span>
+        <span class="grip" data-resize title="Drag to resize"></span>
       </div>
     </section>
 
@@ -155,15 +156,28 @@
       <div class="win-body">
         <div class="cd">
           <div class="cd-top">
-            <div class="cd-art" aria-hidden="true"></div>
+            <div class="cd-art" id="cd-art">
+              <img id="cd-cover" alt="" hidden>
+            </div>
             <div class="cd-fields">
               <p class="cd-field"><label for="cd-artist">Artist:</label><output id="cd-artist">—</output></p>
-              <p class="cd-field"><label for="cd-track">Track:</label><output id="cd-track">—</output></p>
-              <div class="cd-seek" aria-hidden="true"><i></i></div>
+              <div class="cd-field cd-search">
+                <label for="cd-track">Track:</label>
+                <input type="text" id="cd-track" autocomplete="off" spellcheck="false"
+                       placeholder="type to search…"
+                       role="combobox" aria-expanded="false" aria-controls="cd-results"
+                       aria-autocomplete="list" aria-label="Track — type to search">
+                <ul class="cd-results" id="cd-results" role="listbox" aria-label="Search results" hidden></ul>
+              </div>
+              <div class="cd-seek"><i id="cd-seek"></i></div>
             </div>
           </div>
-          <div class="cd-keys" aria-hidden="true">
-            <b>&#9664;&#9664;</b><b>&#9654;&#9654;</b><b>&#9654;</b><b>&#9632;</b><b>&#9679;</b>
+          <div class="cd-keys">
+            <button type="button" data-cd="rew" aria-label="Rewind">&#9664;&#9664;</button>
+            <button type="button" data-cd="ff" aria-label="Fast forward">&#9654;&#9654;</button>
+            <button type="button" data-cd="play" id="cd-play" aria-label="Play">&#9654;</button>
+            <button type="button" data-cd="stop" aria-label="Stop">&#9632;</button>
+            <button type="button" data-cd="rec" aria-label="Record">&#9679;</button>
           </div>
         </div>
       </div>
@@ -206,8 +220,8 @@
     <p><a href="index.html">&laquo; Back to the shiny part of the site</a></p>
   </footer>
 
-  <script src="assets/data/posts.js?v=4"></script>
-  <script src="assets/js/blog.js?v=4" defer></script>
+  <script src="assets/data/posts.js?v=10"></script>
+  <script src="assets/js/blog.js?v=10" defer></script>
 </body>
 
 </html>
