@@ -57,13 +57,16 @@ const CACHE_VERSION = 'v2';
 const API = 'https://api.genius.com';
 
 function corsHeaders(origin) {
-  return {
-    'Access-Control-Allow-Origin': origin,
+  const headers = {
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
+  // Answering curl, which sent no Origin: an empty allow-origin header is not
+  // a valid value, so it is left off entirely rather than sent blank.
+  if (origin) { headers['Access-Control-Allow-Origin'] = origin; }
+  return headers;
 }
 
 function json(body, status, origin, cacheSeconds) {
@@ -89,15 +92,26 @@ export default {
   async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
     const allowed = ALLOWED_ORIGINS.includes(origin);
+    const url = new URL(request.url);
+
+    // A request with no Origin at all is not a browser on another site — it is
+    // curl, or the address typed into the bar. The allowlist exists to stop
+    // other *pages* from spending the Genius token, and it cannot stop a
+    // console (curl will happily send any Origin it is told to), so refusing
+    // these buys nothing and makes the guestbook impossible to administer.
+    // Reading entries and deleting one are therefore let through without it:
+    // the list is public anyway, and deletion is guarded by the admin token.
+    // Writing still requires a known origin, so the form stays the only way in.
+    const isAdminRoute = url.pathname === '/guestbook' &&
+      (request.method === 'GET' || request.method === 'DELETE');
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: allowed ? 204 : 403, headers: allowed ? corsHeaders(origin) : {} });
     }
-    if (!allowed) {
+    if (!allowed && !(origin === '' && isAdminRoute)) {
       // No CORS headers on purpose: an unknown site gets nothing usable.
       return new Response('Forbidden', { status: 403 });
     }
-    const url = new URL(request.url);
 
     /* ---------------------------------------------------------- guestbook -- */
     // Same Worker, second job. The site talks to <worker>/guestbook.

@@ -252,20 +252,40 @@ window.GUESTBOOK_API = 'https://genius-proxy.твой-логин.workers.dev';
 
 ### Как удалить чужую запись
 
-Узнать номера записей:
+**Шаг 1. Узнать номер записи.** Открой в браузере:
 
 ```
 https://genius-proxy.твой-логин.workers.dev/guestbook
 ```
 
-Удалить (подставь свой токен и номер):
+Увидишь список всех записей, у каждой в начале `"id":` — это и есть номер.
 
-```bash
-curl -X DELETE -H "X-Admin-Token: ТВОЙ_ТОКЕН" "https://genius-proxy.твой-логин.workers.dev/guestbook?id=5"
+**Шаг 2. Удалить.** Здесь важно, чем ты это делаешь.
+
+В **PowerShell** (синее окно) слово `curl` — не настоящий curl, а переименованная
+команда Windows с другим синтаксисом, и пример с `-X DELETE` в ней не сработает.
+Пиши так:
+
+```powershell
+Invoke-RestMethod -Method Delete -Headers @{ "X-Admin-Token" = "ТВОЙ_ТОКЕН" } -Uri "https://genius-proxy.твой-логин.workers.dev/guestbook?id=5"
 ```
 
+В **cmd.exe** или Git Bash — обычный curl, только пиши `curl.exe`:
+
+```bash
+curl.exe -X DELETE -H "X-Admin-Token: ТВОЙ_ТОКЕН" "https://genius-proxy.твой-логин.workers.dev/guestbook?id=5"
+```
+
+В ответ придёт `{"ok":true,"deleted":5}`. Обнови страницу — записи нет.
+
 Без верного токена удаление не работает, а если `ADMIN_TOKEN` не задан вовсе —
-удаление выключено полностью, а не открыто для всех.
+удаление выключено полностью, а не открыто для всех. Токен передаётся только
+заголовком `X-Admin-Token`, а не в адресе: адреса попадают в логи и в историю
+браузера, заголовки — нет.
+
+> Забыл токен? Посмотреть его нельзя — Cloudflare хранит секреты только на
+> запись. Просто задай новый: `npx.cmd wrangler secret put ADMIN_TOKEN`
+> перезапишет старый.
 
 ### Что стоит на пути спама
 
@@ -286,7 +306,6 @@ curl -X DELETE -H "X-Admin-Token: ТВОЙ_ТОКЕН" "https://genius-proxy.т�
 | `{"error":"guestbook_failed"}` | Таблицы нет — не выполнен `d1 execute` со `schema.sql` |
 | `{"error":"too_fast"}` | Сработало ограничение: минута между записями |
 | `{"error":"forbidden"}` на удалении | Неверный `X-Admin-Token` |
-| «The guestbook is unreachable right now» на живом сайте, а локально всё работает | Адрес, с которого ты зашёл, не совпал ни с одной строкой `ALLOWED_ORIGINS`. Чаще всего дело в схеме: сайт открылся по `http://`, а в списке только `https://`. Точный адрес виден в консоли браузера (F12) в сообщении про CORS — впиши его в список ровно так, как он там написан, и сделай `npx.cmd wrangler deploy` |
 
 ---
 

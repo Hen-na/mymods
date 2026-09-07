@@ -186,12 +186,13 @@
 
 
   /* ------------------------------------------------------- guestbook bubble -- */
-  // The three newest signatures, shown as speech bubbles in the sidebar. The
-  // address comes from assets/data/versions.js; with none set the block simply
-  // never appears, so the page is unchanged for anyone not running the Worker.
+  // The newest signatures, shown as speech bubbles in the sidebar. The address
+  // comes from assets/data/versions.js; with none set the block simply never
+  // appears, so the page is unchanged for anyone not running the Worker.
   var GUESTBOOK_API = (typeof window.GUESTBOOK_API === 'string' && window.GUESTBOOK_API.trim())
     ? window.GUESTBOOK_API.trim().replace(/\/+$/, '') + '/guestbook'
     : '';
+  // How many bubbles stand open; the rest wait behind the "more" button.
   var BUBBLES_SHOWN = 3;
 
   // SQLite writes datetime('now') as "2026-09-05 18:20:00" — UTC, but with no
@@ -215,40 +216,84 @@
     };
   }
 
+  function bubbleItem(entry) {
+    var item = element('li', 'bubble');
+    item.appendChild(element('p', 'bubble-text', entry.message));
+
+    var foot = element('p', 'bubble-who');
+    foot.appendChild(element('span', 'bubble-name', entry.name));
+
+    var stamp = signedAt(entry.created);
+    if (stamp) {
+      var when = element('time', 'bubble-when', stamp.label);
+      when.dateTime = stamp.iso;
+      foot.appendChild(when);
+    }
+
+    item.appendChild(foot);
+    return item;
+  }
+
   function renderBubbles() {
     var block = document.getElementById('gb-bubble');
     var list = document.getElementById('gb-bubble-list');
+    var note = document.getElementById('gb-bubble-note');
+    var more = document.getElementById('gb-bubble-more');
     if (!block || !list || !GUESTBOOK_API) { return; }
+
+    function say(text) {
+      if (!note) { return; }
+      note.textContent = text;
+      note.hidden = !text;
+    }
+
+    // "Sign it" has to be reachable whether or not anybody has signed yet —
+    // an empty guestbook is precisely when the invitation matters — so the
+    // block appears as soon as there is a guestbook to point at, and only the
+    // list inside it waits for the answer.
+    block.hidden = false;
 
     fetch(GUESTBOOK_API)
       .then(function (response) { return response.json(); })
       .then(function (data) {
-        var entries = (data.entries || []).slice(0, BUBBLES_SHOWN);
-        if (!entries.length) { return; }
-
+        var entries = data.entries || [];
         list.textContent = '';
-        entries.forEach(function (entry) {
-          var item = element('li', 'bubble');
-          item.appendChild(element('p', 'bubble-text', entry.message));
 
-          var foot = element('p', 'bubble-who');
-          foot.appendChild(element('span', 'bubble-name', entry.name));
+        if (!entries.length) {
+          say('Nobody has signed it yet — be the first.');
+          return;
+        }
+        say('');
 
-          var stamp = signedAt(entry.created);
-          if (stamp) {
-            var when = element('time', 'bubble-when', stamp.label);
-            when.dateTime = stamp.iso;
-            foot.appendChild(when);
-          }
-
-          item.appendChild(foot);
+        entries.forEach(function (entry, index) {
+          var item = bubbleItem(entry);
+          // Everything past the fold is built now and merely hidden: the whole
+          // list arrived in one response, so "more" costs an attribute rather
+          // than a second request.
+          if (index >= BUBBLES_SHOWN) { item.hidden = true; }
           list.appendChild(item);
         });
 
-        block.hidden = false;
+        if (!more || entries.length <= BUBBLES_SHOWN) { return; }
+
+        var label = more.querySelector('span') || more;
+        var rest = entries.length - BUBBLES_SHOWN;
+        var open = false;
+
+        label.textContent = rest + ' more';
+        more.hidden = false;
+        more.addEventListener('click', function () {
+          open = !open;
+          for (var i = BUBBLES_SHOWN; i < list.children.length; i += 1) {
+            list.children[i].hidden = !open;
+          }
+          label.textContent = open ? 'Show fewer' : rest + ' more';
+        });
       })
       .catch(function () {
-        /* Unreachable: leave the block hidden rather than show an error box. */
+        // Unreachable. The block stays, because the link to the guestbook is
+        // still good — only the signatures are missing.
+        say('Signatures are not loading right now.');
       });
   }
 
