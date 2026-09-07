@@ -286,6 +286,7 @@ curl -X DELETE -H "X-Admin-Token: ТВОЙ_ТОКЕН" "https://genius-proxy.т�
 | `{"error":"guestbook_failed"}` | Таблицы нет — не выполнен `d1 execute` со `schema.sql` |
 | `{"error":"too_fast"}` | Сработало ограничение: минута между записями |
 | `{"error":"forbidden"}` на удалении | Неверный `X-Admin-Token` |
+| «The guestbook is unreachable right now» на живом сайте, а локально всё работает | Адрес, с которого ты зашёл, не совпал ни с одной строкой `ALLOWED_ORIGINS`. Чаще всего дело в схеме: сайт открылся по `http://`, а в списке только `https://`. Точный адрес виден в консоли браузера (F12) в сообщении про CORS — впиши его в список ровно так, как он там написан, и сделай `npx.cmd wrangler deploy` |
 
 ---
 

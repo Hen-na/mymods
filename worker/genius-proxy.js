@@ -18,10 +18,18 @@
 
 import { listEntries, addEntry, deleteEntry } from './guestbook.js';
 
-/* Add or remove sites here — these are the only origins the proxy answers. */
+/* Add or remove sites here — these are the only origins the proxy answers.
+ *
+ * The http:// entries are a stopgap. GitHub Pages cannot issue a certificate
+ * for heppa.online while its DNS still points at a non-GitHub address, so the
+ * site currently loads over plain http and the browser sends that as its
+ * origin. Once the stray A record is gone and "Enforce HTTPS" is on, delete
+ * the two http lines and redeploy — the site will never be on them again. */
 const ALLOWED_ORIGINS = [
   'https://www.heppa.online',
   'https://heppa.online',
+  'http://www.heppa.online',
+  'http://heppa.online',
   'http://localhost:8099'
 ];
 
