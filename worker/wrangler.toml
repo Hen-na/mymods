@@ -12,3 +12,12 @@ preview_urls = false
 
 # The access token is NOT stored here — it is a secret, set once with:
 #   npx.cmd wrangler secret put GENIUS_TOKEN
+
+# The guestbook database.
+#   binding       — the name the Worker code looks it up by. Must stay "DB":
+#                   the code reads env.DB and nothing else.
+#   database_name — what it is called in your Cloudflare dashboard.
+[[d1_databases]]
+binding = "DB"
+database_name = "hennablog"
+database_id = "5aece236-f4b7-44e0-bbbd-723a5e7eeac1"

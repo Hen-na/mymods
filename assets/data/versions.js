@@ -1,3 +1,8 @@
+/* Адрес Cloudflare Worker с гостевой книгой. Пусто — блок с записями на
+   главной просто не появляется. Как поднять: worker/README.md
+   Пример: window.GUESTBOOK_API = 'https://genius-proxy.ТВОЙ-ЛОГИН.workers.dev'; */
+window.GUESTBOOK_API = 'https://genius-proxy.osked7002.workers.dev';
+
 /* ==========================================================================
    The one place release data lives. Both the front page and the version
    archive read this file, so nothing has to be edited in two places.

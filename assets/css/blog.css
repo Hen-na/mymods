@@ -659,3 +659,10 @@ a:active { color: #e00; }
   border: 1px dotted #fff;
   background: rgba(0, 0, 128, .22);
 }
+
+/* The honeypot has to be reachable to a bot parsing the HTML and invisible to
+   everyone else — off-screen rather than display:none, which some bots skip. */
+.trap {
+  position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;
+}
+.gb-status { margin: 4px 0 0; font-size: 11px; color: #000080; min-height: 14px; }

@@ -12,7 +12,7 @@
   <title>Hen_na's Blog</title>
   <link rel="icon" href="assets/images/Grass_Block.webp" type="image/webp">
 
-  <link rel="stylesheet" href="assets/css/blog.css?v=28">
+  <link rel="stylesheet" href="assets/css/blog.css?v=32">
 </head>
 
 <body>
@@ -309,19 +309,25 @@
           <input type="text" id="gb-name" name="name" maxlength="40" autocomplete="nickname" required>
           <label for="gb-message">Message</label>
           <textarea id="gb-message" name="message" maxlength="500" required></textarea>
+          <!-- Hidden from people, irresistible to bots: anything typed here
+               marks the submission as spam. -->
+          <div class="trap" aria-hidden="true">
+            <label for="gb-website">Website</label>
+            <input type="text" id="gb-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
           <button class="btn95" type="submit">Sign it</button>
+          <p class="gb-status" id="gb-status" role="status"></p>
         </form>
         <ul class="gb-entries" id="gb-entries"></ul>
-        <p class="gb-note">This page has no server, so entries are saved in your own browser only —
-          nobody else can see them.</p>
+        <p class="gb-note" id="gb-note">Signatures are public — everyone visiting sees them.</p>
       </div>
     </section>
 
   </div>
 
 
-  <script src="assets/data/posts.js?v=28"></script>
-  <script src="assets/js/blog.js?v=28" defer></script>
+  <script src="assets/data/posts.js?v=32"></script>
+  <script src="assets/js/blog.js?v=32" defer></script>
 </body>
 
 </html>

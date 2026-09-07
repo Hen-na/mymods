@@ -184,6 +184,76 @@
     });
   }
 
+
+  /* ------------------------------------------------------- guestbook bubble -- */
+  // The three newest signatures, shown as speech bubbles in the sidebar. The
+  // address comes from assets/data/versions.js; with none set the block simply
+  // never appears, so the page is unchanged for anyone not running the Worker.
+  var GUESTBOOK_API = (typeof window.GUESTBOOK_API === 'string' && window.GUESTBOOK_API.trim())
+    ? window.GUESTBOOK_API.trim().replace(/\/+$/, '') + '/guestbook'
+    : '';
+  var BUBBLES_SHOWN = 3;
+
+  // SQLite writes datetime('now') as "2026-09-05 18:20:00" — UTC, but with no
+  // marker saying so. Handed to the browser as-is it would be read as local
+  // time and land hours off, so the zone is spelled out before parsing.
+  function signedAt(value) {
+    var raw = String(value || '').trim();
+    if (!raw) { return null; }
+
+    var iso = raw.replace(' ', 'T');
+    if (!/(Z|[+-]\d{2}:?\d{2})$/i.test(iso)) { iso += 'Z'; }
+
+    var date = new Date(iso);
+    if (isNaN(date.getTime())) { return null; }
+
+    return {
+      iso: date.toISOString(),
+      label: date.toLocaleString(undefined, {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+      })
+    };
+  }
+
+  function renderBubbles() {
+    var block = document.getElementById('gb-bubble');
+    var list = document.getElementById('gb-bubble-list');
+    if (!block || !list || !GUESTBOOK_API) { return; }
+
+    fetch(GUESTBOOK_API)
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        var entries = (data.entries || []).slice(0, BUBBLES_SHOWN);
+        if (!entries.length) { return; }
+
+        list.textContent = '';
+        entries.forEach(function (entry) {
+          var item = element('li', 'bubble');
+          item.appendChild(element('p', 'bubble-text', entry.message));
+
+          var foot = element('p', 'bubble-who');
+          foot.appendChild(element('span', 'bubble-name', entry.name));
+
+          var stamp = signedAt(entry.created);
+          if (stamp) {
+            var when = element('time', 'bubble-when', stamp.label);
+            when.dateTime = stamp.iso;
+            foot.appendChild(when);
+          }
+
+          item.appendChild(foot);
+          list.appendChild(item);
+        });
+
+        block.hidden = false;
+      })
+      .catch(function () {
+        /* Unreachable: leave the block hidden rather than show an error box. */
+      });
+  }
+
+  renderBubbles();
+
   /* -------------------------------------------------- active nav marker -- */
   var sections = document.querySelectorAll('section[id]');
   // The sidebar is the whole navigation now. Links without a hash are included

@@ -16,6 +16,8 @@
  * Deploy: see worker/README.md
  */
 
+import { listEntries, addEntry, deleteEntry } from './guestbook.js';
+
 /* Add or remove sites here — these are the only origins the proxy answers. */
 const ALLOWED_ORIGINS = [
   'https://www.heppa.online',
@@ -49,18 +51,20 @@ const API = 'https://api.genius.com';
 function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
 }
 
-function json(body, status, origin) {
+function json(body, status, origin, cacheSeconds) {
+  const cache = cacheSeconds === undefined ? CACHE_SECONDS : cacheSeconds;
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'public, max-age=' + CACHE_SECONDS,
+      'Cache-Control': cache > 0 ? 'public, max-age=' + cache : 'no-store',
       ...corsHeaders(origin)
     }
   });
@@ -81,18 +85,46 @@ export default {
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: allowed ? 204 : 403, headers: allowed ? corsHeaders(origin) : {} });
     }
-    if (request.method !== 'GET') {
-      return new Response('Method not allowed', { status: 405 });
-    }
     if (!allowed) {
       // No CORS headers on purpose: an unknown site gets nothing usable.
       return new Response('Forbidden', { status: 403 });
     }
+    const url = new URL(request.url);
+
+    /* ---------------------------------------------------------- guestbook -- */
+    // Same Worker, second job. The site talks to <worker>/guestbook.
+    if (url.pathname === '/guestbook') {
+      if (!env.DB) {
+        return json({ error: 'no_database', detail: 'D1 binding DB is missing' }, 500, origin, 0);
+      }
+
+      try {
+        if (request.method === 'GET') {
+          return json({ entries: await listEntries(env) }, 200, origin, 0);
+        }
+
+        if (request.method === 'POST') {
+          const body = await request.json().catch(() => ({}));
+          const result = await addEntry(env, request, body);
+          return json(result, result.ok ? 200 : (result.status || 400), origin, 0);
+        }
+
+        if (request.method === 'DELETE') {
+          const result = await deleteEntry(env, request, url.searchParams.get('id'));
+          return json(result, result.ok ? 200 : (result.status || 403), origin, 0);
+        }
+      } catch (error) {
+        return json({ error: 'guestbook_failed', detail: String(error).slice(0, 200) }, 500, origin, 0);
+      }
+
+      return new Response('Method not allowed', { status: 405 });
+    }
+
+    /* ------------------------------------------------------------ genius -- */
     if (!env.GENIUS_TOKEN) {
       return json({ error: 'no_key', detail: 'GENIUS_TOKEN secret is not set' }, 500, origin);
     }
 
-    const url = new URL(request.url);
     const artist = (url.searchParams.get('artist') || '').trim().slice(0, 120);
     const track = (url.searchParams.get('track') || '').trim().slice(0, 120);
 

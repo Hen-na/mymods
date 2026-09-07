@@ -45,7 +45,7 @@ window.BLOG_TRACK_NOTES = {};
    (сами тексты Genius через API не отдаёт вообще).
    Как поднять: worker/README.md
 
-   Пример: window.GENIUS_API = 'http://localhost:8098/_tmp-genius.json'; */
+   Пример: window.GENIUS_API = 'https://genius-proxy.ТВОЙ-ЛОГИН.workers.dev'; */
 window.GENIUS_API = 'https://genius-proxy.osked7002.workers.dev';
 
 window.BLOG_POSTS = [

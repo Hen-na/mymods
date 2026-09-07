@@ -424,10 +424,17 @@
   }
 
   /* ------------------------------------------------------------ guestbook -- */
+  // With GUESTBOOK_API set the book is real: entries live in a database on the
+  // Worker and everyone sees the same ones. Without it the page falls back to
+  // this browser's own storage, which is what it was before — still usable,
+  // just private.
   var GUESTBOOK_KEY = 'hen_na_guestbook';
   var MAX_ENTRIES = 25;
+  var GUESTBOOK_API = (typeof window.GENIUS_API === 'string' && window.GENIUS_API.trim())
+    ? window.GENIUS_API.trim().replace(/\/+$/, '') + '/guestbook'
+    : '';
 
-  function readGuestbook() {
+  function localEntries() {
     try {
       var parsed = JSON.parse(localStorage.getItem(GUESTBOOK_KEY) || '[]');
       return Array.isArray(parsed) ? parsed : [];
@@ -436,33 +443,61 @@
     }
   }
 
-  function renderGuestbook() {
+  function paintEntries(entries, note) {
     var list = document.getElementById('gb-entries');
     if (!list) { return; }
 
-    var entries = readGuestbook();
     list.textContent = '';
 
     if (!entries.length) {
-      list.appendChild(element('li', 'gb-entry', 'Nobody has signed yet. Be the first!'));
+      list.appendChild(element('li', 'gb-entry', note || 'Nobody has signed yet. Be the first!'));
       return;
     }
 
     entries.forEach(function (entry) {
+      var when = entry.created || entry.date;
       var item = element('li', 'gb-entry');
       item.appendChild(element('b', null, entry.name));
       item.appendChild(document.createTextNode(' — '));
-      var time = element('time', null, formatDate(entry.date));
-      time.dateTime = entry.date;
+      var time = element('time', null, formatDate(when));
+      time.dateTime = when;
       item.appendChild(time);
       item.appendChild(element('p', null, entry.message));
       list.appendChild(item);
     });
   }
 
+  function renderGuestbook() {
+    if (!GUESTBOOK_API) { paintEntries(localEntries()); return; }
+
+    paintEntries([], 'Loading…');
+    fetch(GUESTBOOK_API)
+      .then(function (response) { return response.json(); })
+      .then(function (data) { paintEntries(data.entries || []); })
+      .catch(function () {
+        paintEntries([], 'The guestbook is unreachable right now.');
+      });
+  }
+
+  function saveLocally(name, message) {
+    var entries = localEntries();
+    entries.unshift({ name: name, message: message, date: new Date().toISOString() });
+    try {
+      localStorage.setItem(GUESTBOOK_KEY, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
+    } catch (error) {
+      /* Storage unavailable: the entry still shows for this pageview. */
+    }
+    paintEntries(entries);
+  }
+
   function wireGuestbook() {
     var form = document.getElementById('gb-form');
     if (!form) { return; }
+
+    var status = document.getElementById('gb-status');
+    var button = form.querySelector('button[type="submit"]');
+
+    function say(text) { if (status) { status.textContent = text || ''; } }
 
     form.addEventListener('submit', function (event) {
       event.preventDefault();
@@ -471,16 +506,52 @@
       var message = (form.elements.message.value || '').trim().slice(0, 500);
       if (!name || !message) { return; }
 
-      var entries = readGuestbook();
-      entries.unshift({ name: name, message: message, date: new Date().toISOString() });
-      try {
-        localStorage.setItem(GUESTBOOK_KEY, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
-      } catch (error) {
-        /* Storage unavailable: the entry still shows for this pageview. */
+      if (!GUESTBOOK_API) {
+        form.reset();
+        saveLocally(name, message);
+        return;
       }
 
-      form.reset();
-      renderGuestbook();
+      // The honeypot field travels with the request; a bot fills it, a person
+      // never sees it.
+      var trap = form.elements.website ? form.elements.website.value : '';
+
+      if (button) { button.disabled = true; }
+      say('Sending…');
+
+      fetch(GUESTBOOK_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, message: message, website: trap })
+      })
+        .then(function (response) { return response.json().then(function (d) { return { ok: response.ok, data: d }; }); })
+        .then(function (result) {
+          if (button) { button.disabled = false; }
+
+          if (!result.ok || !result.data.ok) {
+            // Say what actually went wrong. A single "could not send" hides
+            // setup mistakes and turns a two-minute fix into guesswork.
+            var reason = (result.data && result.data.error) || 'unknown';
+            var says = {
+              too_fast: 'One message a minute, please.',
+              daily_limit: 'That is enough for today.',
+              name_and_message_required: 'Fill in both fields.',
+              no_database: 'Setup: the D1 binding is missing (must be named DB).',
+              guestbook_failed: 'Setup: the database has no table yet — run schema.sql.'
+            };
+            say(says[reason] || ('Could not send that (' + reason + ').'));
+            return;
+          }
+
+          say('Signed!');
+          form.reset();
+          renderGuestbook();
+          window.setTimeout(function () { say(''); }, 3000);
+        })
+        .catch(function () {
+          if (button) { button.disabled = false; }
+          say('The guestbook is unreachable right now.');
+        });
     });
   }
 

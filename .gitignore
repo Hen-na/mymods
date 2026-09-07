@@ -1,0 +1,14 @@
+# Wrangler's local state: caches, build output and a file with your Cloudflare
+# account id and e-mail. None of it belongs in a public repository.
+worker/.wrangler/
+.wrangler/
+
+# Installers and archives that wander into the folder
+*.msi
+*.exe
+*.zip
+
+# Editor and OS litter
+.DS_Store
+Thumbs.db
+*.swp
