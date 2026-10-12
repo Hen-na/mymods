@@ -76,10 +76,14 @@
       image.src = item.poster;
       image.alt = '';
       image.loading = 'lazy';
+      // Картинка не пришла — убираем её и снимаем метку, чтобы вернулись
+      // подпись и запасная плитка с названием.
       image.addEventListener('error', function () {
         if (image.parentNode) { image.parentNode.removeChild(image); }
+        pick.classList.remove('has-art');
       });
       poster.appendChild(image);
+      pick.classList.add('has-art');
     }
     // Значок ветки: айтишные позиции пришли отдельным списком, и без пометки
     // они потерялись бы среди мультиков своего уровня.

@@ -400,7 +400,9 @@ svg { width: 1em; height: 1em; vertical-align: -.13em; fill: none; }
   .side-brand { order: 1; }
   .side-contents { order: 2; }
   .layout > main { order: 3; }
-  .side-build { order: 4; }
+  .side-progress { order: 4; }
+  .side-build { order: 5; }
+  .gb-bubble { order: 6; }
   .side-nav { grid-template-columns: 1fr 1fr; }
 }
 
@@ -1039,3 +1041,14 @@ kbd {
                                       rgba(8, 70, 120, .95) 52%, rgba(60, 160, 215, .9) 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 1px 3px rgba(4, 40, 66, .45);
 }
+
+/* Обложка называет себя сама. Когда картинка есть, и запасной текст поверх
+   неё, и подпись под ней — лишний шум; название всё равно всплывает в
+   подсказке. Нет картинки — и то и другое возвращается, иначе плитка осталась
+   бы безымянной. Метку has-art ставит скрипт: он один знает, загрузилась
+   картинка или отвалилась. */
+.pick.has-art .poster-text,
+.pick.has-art .pick-title { display: none; }
+
+/* Без подписи карточка — это сама обложка, и ряд выравнивается по ней. */
+.pick.has-art { align-content: start; }
