@@ -520,6 +520,31 @@ a:active { color: #e00; }
   border: 2px solid; border-color: var(--sh) var(--hi) var(--hi) var(--sh);
 }
 
+/* =============================================== youtube in a 1996 window = */
+/* The body holds nothing but the player, so it loses the usual padding and
+   gets a definite height — an iframe cannot fill a parent that has none. The
+   resize grip writes over this height, and the player follows. */
+.yt-body { padding: 0; overflow: hidden; height: 300px; background: #000; }
+.yt-frame { width: 100%; height: 100%; }
+.yt-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+/* Shown for the moment between opening the window and the player arriving. */
+.yt-wait { margin: 0; padding: 10px; color: #c0c0c0; font-size: 11px; }
+
+.yt-body ~ .status-bar a { color: inherit; }
+
+/* Song links that open here rather than leaving the page. Marked with the
+   dotted underline 1996 used for "this does something", so the two kinds of
+   link in the lyrics window can be told apart before clicking. */
+.plays-here { text-decoration: none; border-bottom: 1px dotted currentColor; }
+.plays-here::after { content: ' \25B8'; font-size: .9em; }
+
+/* A frame swallows the pointer, which would drop a drag passing over it.
+   Pointer capture already covers this in current browsers; the rule is the
+   belt to that pair of braces, and harmless where :has() is not understood. */
+body:has(.window.dragging) iframe,
+body:has(.window.resizing) iframe { pointer-events: none; }
+
 /* ========================================================== the page 1999 = */
 .page99 {
   padding: 0;

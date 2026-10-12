@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="LiDAR Scanner — a Fabric mod that blacks out the world and lets you read it back as a point cloud you scan yourself.">
+  <meta name="description" content="Тир-лист фильмов, сериалов и игр по уровню сложности английской лексики — от A1 до C2.">
   <meta name="theme-color" content="#8fd8f7">
   <meta name="color-scheme" content="light">
   <meta name="author" content="Hen_na">
 
-  <title>LiDAR Scanner — a Fabric mod by Hen_na</title>
+  <title>Тир-лист — английский по фильмам и играм</title>
   <link rel="icon" href="assets/images/Grass_Block.webp" type="image/webp">
 
-  <link rel="stylesheet" href="assets/css/style.css?v=31">
+  <link rel="stylesheet" href="assets/css/style.css?v=32">
 </head>
 
 <body>
@@ -51,19 +51,30 @@
 
       <a class="side-brand glass" href="index.html"><span>Hen<em>_na</em></span></a>
 
-      <nav class="side-block side-contents glass" aria-label="Site contents">
-        <h2>Site Contents</h2>
+      <nav class="side-block side-contents glass" aria-label="Содержание">
+        <h2>Уровни</h2>
         <ul class="side-nav">
-          <li><a href="#top"><svg aria-hidden="true"><use href="#i-arrow"/></svg> Overview</a></li>
-          <li><a href="#item"><svg aria-hidden="true"><use href="#i-arrow"/></svg> The scanner item</a></li>
-          <li><a href="#features"><svg aria-hidden="true"><use href="#i-arrow"/></svg> What it does</a></li>
-          <li><a href="#install"><svg aria-hidden="true"><use href="#i-arrow"/></svg> Controls &amp; install</a></li>
-          <li><a href="#specs"><svg aria-hidden="true"><use href="#i-arrow"/></svg> Specs</a></li>
-          <li><a href="versions.html"><svg aria-hidden="true"><use href="#i-history"/></svg> Version archive</a></li>
+          <li><a href="#tier-start"><svg aria-hidden="true"><use href="#i-arrow"/></svg> Старт</a></li>
+          <li><a href="#tier-base"><svg aria-hidden="true"><use href="#i-arrow"/></svg> Уверенная база</a></li>
+          <li><a href="#tier-mid"><svg aria-hidden="true"><use href="#i-arrow"/></svg> Средний</a></li>
+          <li><a href="#tier-adv"><svg aria-hidden="true"><use href="#i-arrow"/></svg> Продвинутый</a></li>
+          <li><a href="#tier-boss"><svg aria-hidden="true"><use href="#i-arrow"/></svg> Боссы</a></li>
+          <li><a href="mod.html"><svg aria-hidden="true"><use href="#i-cube"/></svg> LiDAR Scanner</a></li>
           <li><a href="blog.html"><svg aria-hidden="true"><use href="#i-arrow"/></svg> Blog</a></li>
           <li><a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-yt"/></svg> YouTube</a></li>
         </ul>
       </nav>
+
+      <div class="side-block side-progress glass">
+        <h2>Пройдено</h2>
+        <div class="side-body">
+          <p class="progress-figure" id="progress-figure">0<small> из 0</small></p>
+          <div class="progress-rail" id="progress-rail" role="progressbar" aria-label="Пройдено" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <p class="side-note">Отметки хранятся в этом браузере</p>
+        </div>
+      </div>
 
       <!-- Latest guestbook signatures, pulled from the Worker. Stays hidden
            until there is something to show. -->
@@ -77,200 +88,51 @@
         </div>
       </div>
 
-      <div class="side-block side-build glass">
-        <h2>Latest build</h2>
-        <div class="side-body">
-          <dl class="side-facts">
-            <div><dt>Version</dt><dd data-latest="version">1.0.0</dd></div>
-            <div><dt>Minecraft</dt><dd data-latest="minecraft">26.2</dd></div>
-            <div><dt>Loader</dt><dd data-latest="loader">0.19.3+</dd></div>
-            <div><dt>Size</dt><dd data-latest="size">31 KB</dd></div>
-          </dl>
-          <a class="btn btn-primary" data-latest-jar href="assets/downloads/lidar-scanner-1.0.0.jar" download>
-            <svg aria-hidden="true"><use href="#i-down"/></svg> <span>Download</span>
-          </a>
-          <p class="side-note">Fabric · CC0-1.0</p>
-        </div>
-      </div>
-
     </aside>
 
   <main id="main">
 
-    <!-- ***** Hero ***** -->
-    <section class="lidar-hero" id="top">
-      <div class="wrap hero-grid">
-
-        <div class="hero-copy">
-          <p class="eyebrow">Fabric mod · Minecraft <span data-latest="minecraft">26.2</span></p>
-          <h1 class="hero-title" data-echo="LiDAR Scanner">LiDAR Scanner</h1>
-          <p class="lead">The world goes black. The only thing left is what you scan: hold right mouse
-            button and the scanner sprays raycasts into the dark, painting every surface it touches as a
-            temporary point cloud that fades on its own.</p>
-
-          <div class="hero-actions">
-            <a class="btn btn-primary" data-latest-jar href="assets/downloads/lidar-scanner-1.0.0.jar" download>
-              <svg aria-hidden="true"><use href="#i-down"/></svg>
-              <span>Download v<span data-latest="version">1.0.0</span></span>
-            </a>
-            <a class="btn btn-ghost" href="versions.html">
-              <svg aria-hidden="true"><use href="#i-history"/></svg> <span>All versions</span>
-            </a>
-          </div>
-
-          <dl class="hero-stats glass">
-            <div><dt>Version</dt><dd data-latest="version">1.0.0</dd></div>
-            <div><dt>Minecraft</dt><dd data-latest="minecraft">26.2</dd></div>
-            <div><dt>Loader</dt><dd data-latest="loader">0.19.3+</dd></div>
-            <div><dt>Size</dt><dd data-latest="size">31 KB</dd></div>
-          </dl>
-        </div>
-
-        <!-- The scanner viewport, framed like a window from the Aero years. -->
-        <div class="aero-window">
-          <div class="titlebar">
-            <span class="dot" aria-hidden="true"></span>
-            <span class="tb-name">lidar_scanner.exe — live demo</span>
-            <span class="win-buttons" aria-hidden="true"><i></i><i></i><i></i></span>
-          </div>
-          <div class="window-body" id="scan-stage">
-            <canvas id="lidar-canvas" aria-label="Interactive point cloud that lights up around your cursor" role="img"></canvas>
-            <p class="scan-hint">Move your cursor inside to scan</p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ***** The item ***** -->
-    <section class="strip" id="item">
-      <div class="wrap lidar-item glass reveal">
-        <figure>
-          <img class="pixel" src="assets/images/mod/body.png" alt="LiDAR scanner body texture" width="128" height="128">
-          <figcaption>body.png</figcaption>
-        </figure>
-        <figure>
-          <img class="pixel" src="assets/images/mod/hande.png" alt="LiDAR scanner handle texture" width="128" height="128">
-          <figcaption>hande.png</figcaption>
-        </figure>
-        <p>A single item — <code>lidar:lidar_scanner</code> — added to the vanilla
-          <em>Tools &amp; Utilities</em> creative tab. Equipping it is what plunges the world into darkness.</p>
-      </div>
-    </section>
-
-    <!-- ***** Features ***** -->
-    <section class="section" id="features">
+    <section class="page-head" id="top">
       <div class="wrap">
-        <h2 class="section-title reveal">What it does</h2>
-        <div class="feature-grid">
-          <article class="feature glass reveal">
-            <h3>Point cloud memory</h3>
-            <p>Up to 200 000 points are kept in flat primitive arrays with a ring cursor, so a scanned
-              room stays readable as a temporary map for about five minutes before fading out.</p>
-          </article>
-          <article class="feature glass reveal">
-            <h3>Pulsing sweep</h3>
-            <p>110 raycasts a tick ride an expanding ring that restarts every 8 ticks — the red pulse you
-              see and the rays that generate points share one clock, so they never drift apart.</p>
-          </article>
-          <article class="feature glass reveal">
-            <h3>Mob silhouettes</h3>
-            <p>Living entities are sampled from their own render model, part tree and pose included. A
-              spider keeps its legs, a creeper its four feet — no texture is ever reproduced.</p>
-          </article>
-          <article class="feature glass reveal">
-            <h3>Depth colouring</h3>
-            <p>Distance drives hue across a 32-block gradient, red through violet, from a pre-built
-              colour table. Close geometry reads warm, far geometry reads cold.</p>
-          </article>
-          <article class="feature glass reveal">
-            <h3>Scanner HUD</h3>
-            <p>A compact top-left readout while the scanner is held: status, range, live point count and
-              a memory bar showing how full the cloud is.</p>
-          </article>
-          <article class="feature glass reveal">
-            <h3>Client-side only</h3>
-            <p>Everything is drawn on the client and nothing is persisted. The mod reads the world and
-              writes points — it never modifies, moves or interacts with an entity.</p>
-          </article>
-        </div>
+        <p class="eyebrow">English · vocabulary</p>
+        <h1 class="hero-title" data-echo="Тир-лист">Тир-лист</h1>
+        <p class="lead">Фильмы, сериалы, игры и книги, разложенные по тому, насколько тяжело даётся
+          их язык. Сверху — то, что понятно почти сразу; внизу боссы, в которые лезут со словарём
+          даже носители. Постер серый, пока не отмечен; наведи курсор — покажу, что там за лексика.</p>
       </div>
     </section>
 
-    <!-- ***** Controls, install, specs ***** -->
-    <section class="section" id="install">
-      <div class="wrap lidar-split">
-
-        <div class="panel glass reveal">
-          <h2>Controls</h2>
-          <ul class="kbd-list">
-            <li><kbd>RMB</kbd> <span>Hold to scan — beam, pulse and point sampling run while held</span></li>
-            <li><kbd>R</kbd> <span>Toggle LiDAR vision mode</span></li>
-            <li><kbd>Hold item</kbd> <span>Equipping the scanner is what plunges the world into darkness</span></li>
-          </ul>
-
-          <h2>Install</h2>
-          <ol class="steps">
-            <li>Install <a href="https://fabricmc.net/use/installer/" target="_blank" rel="noopener">Fabric Loader
-              <span data-latest="loader">0.19.3+</span></a> for Minecraft <span data-latest="minecraft">26.2</span>.</li>
-            <li>Drop <a href="https://modrinth.com/mod/fabric-api" target="_blank" rel="noopener">Fabric API
-              <span data-latest="fabricApi">0.156.0+26.2</span></a> into <code>mods/</code>.</li>
-            <li>Drop <code data-latest="jarName">lidar-scanner-1.0.0.jar</code> in next to it.</li>
-            <li>Launch, grab the scanner from the Tools &amp; Utilities tab, and hold RMB.</li>
-          </ol>
-          <p class="muted small">Running an older Minecraft? Check the
-            <a href="versions.html">version archive</a> for a matching build.</p>
-        </div>
-
-        <div class="panel glass reveal" id="specs">
-          <h2>Specs</h2>
-          <dl class="specs">
-            <div><dt>Mod ID</dt><dd><code>lidar</code></dd></div>
-            <div><dt>Version</dt><dd data-latest="version">1.0.0</dd></div>
-            <div><dt>Minecraft</dt><dd data-latest="minecraft">26.2</dd></div>
-            <div><dt>Loader</dt><dd>Fabric <span data-latest="loader">0.19.3+</span></dd></div>
-            <div><dt>Fabric API</dt><dd data-latest="fabricApi">0.156.0+26.2</dd></div>
-            <div><dt>Java</dt><dd data-latest="java">25</dd></div>
-            <div><dt>Environment</dt><dd>Client rendering, universal jar</dd></div>
-            <div><dt>Scan range</dt><dd>32 blocks (48 draw)</dd></div>
-            <div><dt>Point lifetime</dt><dd>6000 ticks</dd></div>
-            <div><dt>License</dt><dd>CC0-1.0</dd></div>
-          </dl>
-          <div class="panel-actions">
-            <a class="btn btn-ghost" data-latest-sources href="assets/downloads/lidar-scanner-1.0.0-sources.jar" download><span>Sources jar</span></a>
-          </div>
-        </div>
-
+    <section class="section">
+      <div class="wrap">
+        <!-- Заполняется из assets/data/tiers.js -->
+        <div class="tiers" id="tiers"></div>
       </div>
     </section>
 
   </main>
-  </div>
 
-  <!-- ***** Footer ***** -->
   <footer class="site-footer">
     <div class="wrap">
       <div class="footer-glass glass">
         <div class="footer-grid">
           <div>
             <div class="logo">Hen<em>_na</em></div>
-            <p class="muted">LiDAR Scanner — a Fabric mod that takes your eyes away and hands you a
-              scanner instead.</p>
+            <p class="muted">Тир-лист английской лексики и всё остальное, что тут завелось.</p>
           </div>
           <div>
-            <h4>Mod</h4>
+            <h4>Тир-лист</h4>
             <ul class="plain">
-              <li><a href="#features">Features</a></li>
-              <li><a href="#install">Install</a></li>
-              <li><a href="versions.html">Version archive</a></li>
+              <li><a href="#tier-start">Старт</a></li>
+              <li><a href="#tier-mid">Средний</a></li>
+              <li><a href="#tier-boss">Боссы</a></li>
             </ul>
           </div>
           <div>
-            <h4>Download</h4>
+            <h4>Мод</h4>
             <ul class="plain">
-              <li><a data-latest-jar href="assets/downloads/lidar-scanner-1.0.0.jar" download>Latest jar</a></li>
-              <li><a data-latest-sources href="assets/downloads/lidar-scanner-1.0.0-sources.jar" download>Sources</a></li>
-              <li><a href="https://fabricmc.net/" target="_blank" rel="noopener">Fabric</a></li>
+              <li><a href="mod.html">LiDAR Scanner</a></li>
+              <li><a href="versions.html">Version archive</a></li>
+              <li><a href="blog.html">Blog</a></li>
             </ul>
           </div>
           <div>
@@ -278,22 +140,23 @@
             <ul class="social">
               <li><a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" target="_blank" rel="noopener" aria-label="YouTube"><svg aria-hidden="true"><use href="#i-yt"/></svg></a></li>
               <li><a href="https://t.me/kucheraviyvestnik" target="_blank" rel="noopener" aria-label="Telegram"><svg aria-hidden="true"><use href="#i-tg"/></svg></a></li>
-              <li><a href="https://twitter.com/Minecraft" target="_blank" rel="noopener" aria-label="Twitter"><svg aria-hidden="true"><use href="#i-tw"/></svg></a></li>
-              <li><a href="https://www.minecraft.net/" target="_blank" rel="noopener" aria-label="Minecraft"><svg aria-hidden="true"><use href="#i-cube"/></svg></a></li>
             </ul>
           </div>
         </div>
 
         <div class="footer-bottom">
-          <p>Fan project — not affiliated with Mojang Studios. Released under CC0-1.0.</p>
+          <p>Личный список. Ничего не продаёт и никуда не записывает.</p>
           <p>Built by <a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" target="_blank" rel="noopener">Hen_na</a>.</p>
         </div>
       </div>
     </div>
   </footer>
 
-  <script src="assets/data/versions.js?v=31"></script>
-  <script src="assets/js/main.js?v=31" defer></script>
+  <script src="assets/data/versions.js?v=32"></script>
+  <script src="assets/data/tiers.js?v=32"></script>
+  <script src="assets/js/main.js?v=32" defer></script>
+  <script src="assets/js/tiers.js?v=32" defer></script>
+
 </body>
 
 </html>

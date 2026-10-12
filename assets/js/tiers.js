@@ -1,0 +1,197 @@
+/* ==========================================================================
+   Тир-лист: раскладывает assets/data/tiers.js по ступеням и помнит, что уже
+   пройдено.
+
+   Отметки лежат в localStorage этого браузера — не на сервере. Значит они
+   переживают закрытие вкладки, обновление страницы и новый деплой сайта, но
+   принадлежат одному устройству: на телефоне будет свой список. Для личной
+   галочки «посмотрела» этого достаточно, а главное — ничего не надо чинить,
+   когда у домена опять что-нибудь отвалится.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  var levels = Array.isArray(window.TIER_LEVELS) ? window.TIER_LEVELS : [];
+  var items = Array.isArray(window.TIER_ITEMS) ? window.TIER_ITEMS : [];
+
+  var STORE_KEY = 'hen_na_seen';
+
+  var root = document.getElementById('tiers');
+  if (!root || !levels.length) { return; }
+
+  function element(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text != null) { node.textContent = text; }
+    return node;
+  }
+
+  /* --------------------------------------------------------------- память -- */
+  // Запись опознаётся по названию и году, а не по номеру в списке: иначе
+  // достаточно вставить одну строку выше — и все отметки съедут на соседей.
+  function idOf(item) {
+    if (item.id) { return String(item.id); }
+    var base = String(item.title || '') + ' ' + String(item.year || '');
+    return base.toLowerCase()
+      .replace(/[^a-z0-9Ѐ-ӿ]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function loadSeen() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (error) {
+      // Приватное окно или запрещённые данные сайта: страница работает, просто
+      // ничего не запоминает.
+      return [];
+    }
+  }
+
+  var seen = {};
+  loadSeen().forEach(function (id) { seen[id] = true; });
+
+  function saveSeen() {
+    var list = [];
+    Object.keys(seen).forEach(function (id) { if (seen[id]) { list.push(id); } });
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(list));
+    } catch (error) { /* некуда писать — отметка живёт до перезагрузки */ }
+  }
+
+  /* -------------------------------------------------------------- карточка -- */
+  function card(item) {
+    var id = idOf(item);
+    var pick = element('li', 'pick');
+    pick.dataset.id = id;
+
+    var poster = element('div', 'poster');
+    // Название лежит под картинкой всегда: если картинка не придёт, оно само
+    // окажется на виду, и вместо битого квадрата будет аккуратная плитка.
+    poster.appendChild(element('span', 'poster-text', item.title || ''));
+
+    if (item.poster) {
+      var image = element('img');
+      image.src = item.poster;
+      image.alt = '';
+      image.loading = 'lazy';
+      image.addEventListener('error', function () {
+        if (image.parentNode) { image.parentNode.removeChild(image); }
+      });
+      poster.appendChild(image);
+    }
+    // Значок ветки: айтишные позиции пришли отдельным списком, и без пометки
+    // они потерялись бы среди мультиков своего уровня.
+    if (item.tag) { poster.appendChild(element('span', 'pick-tag', item.tag)); }
+    pick.appendChild(poster);
+
+    var title = element('span', 'pick-title', item.title || '');
+    if (item.kind || item.year) {
+      var parts = [];
+      if (item.kind) { parts.push(item.kind); }
+      if (item.year) { parts.push(item.year); }
+      title.appendChild(element('span', 'pick-kind', parts.join(' · ')));
+    }
+    pick.appendChild(title);
+
+    var label = element('label', 'seen');
+    var box = element('input');
+    box.type = 'checkbox';
+    box.checked = !!seen[id];
+    label.appendChild(box);
+    label.appendChild(element('span', 'box'));
+    label.appendChild(element('span', 'seen-label', 'смотрела'));
+    pick.appendChild(label);
+
+    if (item.vocab) {
+      var tip = element('div', 'tip glass');
+      tip.appendChild(element('b', null, item.title || ''));
+      tip.appendChild(document.createTextNode(item.vocab));
+      pick.appendChild(tip);
+    }
+
+    pick.classList.toggle('is-seen', !!seen[id]);
+
+    box.addEventListener('change', function () {
+      seen[id] = box.checked;
+      pick.classList.toggle('is-seen', box.checked);
+      saveSeen();
+      count();
+    });
+
+    return pick;
+  }
+
+  /* ---------------------------------------------------------------- сборка -- */
+  function build() {
+    var byLevel = {};
+    levels.forEach(function (level) { byLevel[level.id] = []; });
+
+    items.forEach(function (item) {
+      // Запись с неизвестным уровнем не теряется молча — она едет в первую
+      // ступень, где её сразу видно и легко поправить.
+      var bucket = byLevel[item.level] ? item.level : levels[0].id;
+      byLevel[bucket].push(item);
+    });
+
+    levels.forEach(function (level) {
+      var section = element('section', 'tier glass');
+      section.id = 'tier-' + level.id;
+      section.dataset.level = level.id;
+
+      var head = element('header', 'tier-head');
+      head.appendChild(element('span', 'tier-badge', level.name));
+      head.appendChild(element('span', 'tier-cefr', level.cefr || ''));
+      if (level.note) { head.appendChild(element('span', 'tier-note', level.note)); }
+
+      var tally = element('span', 'tier-count');
+      tally.appendChild(element('b', null, '0'));
+      tally.appendChild(document.createTextNode(' из ' + byLevel[level.id].length));
+      head.appendChild(tally);
+      section.appendChild(head);
+
+      if (!byLevel[level.id].length) {
+        section.appendChild(element('p', 'tier-empty', 'Пока пусто.'));
+      } else {
+        var list = element('ul', 'tier-items');
+        byLevel[level.id].forEach(function (item) { list.appendChild(card(item)); });
+        section.appendChild(list);
+      }
+
+      root.appendChild(section);
+    });
+  }
+
+  /* ---------------------------------------------------------------- счёт -- */
+  function count() {
+    var done = 0;
+    var all = 0;
+
+    [].forEach.call(root.querySelectorAll('.tier'), function (section) {
+      var picks = section.querySelectorAll('.pick');
+      var ticked = section.querySelectorAll('.pick.is-seen');
+      var tally = section.querySelector('.tier-count b');
+      if (tally) { tally.textContent = String(ticked.length); }
+      done += ticked.length;
+      all += picks.length;
+    });
+
+    var figure = document.getElementById('progress-figure');
+    var fill = document.getElementById('progress-fill');
+    var rail = document.getElementById('progress-rail');
+
+    if (figure) {
+      figure.textContent = String(done);
+      figure.appendChild(element('small', null, ' из ' + all));
+    }
+    if (fill) { fill.style.width = (all ? (done / all) * 100 : 0) + '%'; }
+    if (rail) {
+      rail.setAttribute('aria-valuenow', String(done));
+      rail.setAttribute('aria-valuemax', String(all));
+    }
+  }
+
+  build();
+  count();
+})();

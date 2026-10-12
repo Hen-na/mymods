@@ -839,3 +839,203 @@ kbd {
    empty "more" button would sit there as a blank pill. Restated here, after
    the rules it has to beat, for every hidden thing in the block. */
 .gb-bubble [hidden] { display: none; }
+
+/* ================================================================ tiers === */
+/* Тир-лист: пять ступеней, в каждой ряд постеров. Ступени различаются цветом
+   плашки — иначе тир-лист не читается, — но все оттенки держатся синей
+   половины круга, чтобы страница осталась заодно с остальным сайтом. */
+.tiers { display: grid; gap: 18px; }
+
+.tier { padding: 0; overflow: visible; }
+
+.tier-head {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(9, 70, 110, .18);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .85);
+}
+
+/* Плашка уровня — тот же гель, что у кнопок: светлая верхняя половина,
+   резкая граница посередине, отражение снизу. */
+.tier-badge {
+  position: relative; overflow: hidden;
+  padding: 9px 18px; border-radius: 999px;
+  font: 700 15px/1 var(--font-body); letter-spacing: .2px;
+  color: #fff; text-shadow: 0 1px 1px rgba(0, 40, 70, .5);
+  border: 1px solid var(--badge-deep, var(--aqua-deep));
+  background: linear-gradient(180deg,
+    var(--badge-1) 0%, var(--badge-2) 49%, var(--badge-3) 51%, var(--badge-4) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .95),
+    inset 0 -7px 12px rgba(255, 255, 255, .26),
+    0 1px 1px rgba(4, 40, 66, .3),
+    0 5px 10px rgba(8, 70, 115, .26);
+}
+.tier-badge::before {
+  content: ''; position: absolute; left: 2px; right: 2px; top: 1px; height: 44%;
+  border-radius: 999px 999px 50% 50% / 999px 999px 12px 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .05));
+}
+
+.tier-cefr {
+  font: 600 12px/1 var(--font-body); letter-spacing: .6px;
+  color: var(--ink-soft); text-shadow: 0 1px 0 rgba(255, 255, 255, .9);
+}
+.tier-note { font: italic 600 12px/1 var(--font-body); color: var(--ink-faint); }
+.tier-count {
+  margin-left: auto; font: 600 12px/1 var(--font-body); color: var(--ink-faint);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .9); white-space: nowrap;
+}
+.tier-count b { color: var(--aqua-deep); font-weight: 700; }
+
+/* Пять ступеней. Оттенки идут от бирюзового к пурпурному: порядок читается
+   даже боковым зрением, а синева никуда не девается. */
+.tier[data-level="start"] { --badge-1:#9ff0d0; --badge-2:#2fc39a; --badge-3:#0e9a78; --badge-4:#6fe3c2; --badge-deep:#077a5e; }
+.tier[data-level="base"]  { --badge-1:#9fe6ff; --badge-2:#2eb2e8; --badge-3:#0d84c4; --badge-4:#68cdf5; --badge-deep:#0a6392; }
+.tier[data-level="mid"]   { --badge-1:#a9c8ff; --badge-2:#4a7fe8; --badge-3:#2554c4; --badge-4:#7ea4f5; --badge-deep:#1c3f96; }
+.tier[data-level="adv"]   { --badge-1:#c3b4ff; --badge-2:#7a5ce8; --badge-3:#5533c4; --badge-4:#a38ef5; --badge-deep:#412596; }
+.tier[data-level="boss"]  { --badge-1:#ffb4e8; --badge-2:#e05cc0; --badge-3:#b32a93; --badge-4:#f58ed8; --badge-deep:#8a1f71; }
+
+/* --- карточки ------------------------------------------------------------- */
+.tier-items {
+  list-style: none; margin: 0; padding: 16px 18px 18px;
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+}
+.tier-empty {
+  margin: 0; padding: 16px 18px 18px;
+  font: 400 13px/1.5 var(--font-body); color: var(--ink-faint);
+}
+
+.pick { position: relative; display: grid; gap: 7px; justify-items: center; }
+
+.poster {
+  position: relative; width: 100%; aspect-ratio: 2 / 3;
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .95);
+  background: linear-gradient(180deg, #cfe8f6 0%, #9ec6dd 100%);
+  box-shadow:
+    0 1px 2px rgba(6, 48, 78, .3),
+    0 7px 14px rgba(8, 62, 100, .24),
+    inset 0 1px 0 rgba(255, 255, 255, .95);
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+}
+/* Блик по верхней половине и косой глинт — то же стекло, что на панелях. */
+.poster::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(133deg, rgba(255, 255, 255, .5) 0%, rgba(255, 255, 255, .1) 34%, rgba(255, 255, 255, 0) 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, .42) 0%, rgba(255, 255, 255, .06) 46%, rgba(0, 40, 70, .1) 100%);
+}
+.poster img {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+  /* Непросмотренное — серое. Это основное состояние, а не отключённое. */
+  filter: grayscale(1) contrast(.92) brightness(1.02);
+  transition: filter .35s var(--ease);
+}
+
+/* Нет картинки или она не загрузилась — ровная плитка с названием вместо
+   сломанного квадрата. */
+.poster-text {
+  position: absolute; inset: 0; display: grid; align-content: center;
+  padding: 10px; text-align: center;
+  font: 700 13px/1.3 var(--font-body); color: #0a4368;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+.pick-title {
+  font: 600 12px/1.3 var(--font-body); color: var(--ink); text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .85); overflow-wrap: anywhere;
+}
+.pick-kind { display: block; font-weight: 400; font-size: 11px; color: var(--ink-faint); }
+
+/* --- отметка «смотрела» --------------------------------------------------- */
+.seen { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.seen input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.seen .box {
+  width: 17px; height: 17px; border-radius: 5px; position: relative; flex: 0 0 auto;
+  border: 1px solid rgba(9, 70, 110, .5);
+  background: linear-gradient(180deg, #ffffff 0%, #e6f3fb 49%, #d2e9f7 51%, #f4fbff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 1px 2px rgba(6, 48, 78, .25);
+  transition: background .2s, border-color .2s;
+}
+.seen input:checked + .box {
+  border-color: var(--badge-deep, var(--aqua-deep));
+  background: linear-gradient(180deg,
+    var(--badge-1) 0%, var(--badge-2) 49%, var(--badge-3) 51%, var(--badge-4) 100%);
+}
+/* Галочка, нарисованная двумя сторонами рамки. */
+.seen input:checked + .box::after {
+  content: ''; position: absolute; left: 5px; top: 1px; width: 4px; height: 9px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(42deg);
+}
+.seen input:focus-visible + .box { outline: 2px solid var(--aqua-deep); outline-offset: 2px; }
+.seen-label {
+  font: 600 11px/1 var(--font-body); color: var(--ink-faint);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+/* Отмеченное наливается цветом и чуть светится — ради этого всё и затевалось. */
+.pick.is-seen .poster img { filter: none; }
+.pick.is-seen .poster {
+  box-shadow:
+    0 1px 2px rgba(6, 48, 78, .3),
+    0 7px 14px rgba(8, 62, 100, .24),
+    0 0 0 2px var(--badge-2, var(--aqua)),
+    0 0 18px -2px var(--badge-2, var(--aqua)),
+    inset 0 1px 0 rgba(255, 255, 255, .95);
+}
+.pick.is-seen .seen-label { color: var(--badge-deep, var(--aqua-deep)); }
+
+.pick:hover .poster, .pick:focus-within .poster { transform: translateY(-3px) scale(1.03); }
+
+/* --- подсказка с лексикой ------------------------------------------------- */
+.tip {
+  position: absolute; left: 50%; bottom: calc(100% + 10px);
+  width: max(210px, 100%); transform: translate(-50%, 4px);
+  padding: 10px 12px; z-index: 5;
+  font: 400 12px/1.45 var(--font-body); color: var(--ink);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .16s var(--ease), transform .16s var(--ease), visibility .16s;
+}
+.pick:hover .tip, .pick:focus-within .tip { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+.tip b { display: block; margin-bottom: 3px; color: var(--aqua-deep); }
+
+/* Касанием навести нельзя, так что там, где курсора нет, описание просто
+   стоит под карточкой — ничего не прячется. */
+@media (hover: none) {
+  .tip {
+    position: static; transform: none; width: auto; padding: 8px 10px;
+    opacity: 1; visibility: visible; pointer-events: auto; font-size: 11px;
+  }
+}
+
+/* --- прогресс в сайдбаре -------------------------------------------------- */
+.side-progress .side-body { display: grid; gap: 10px; }
+.progress-figure { font: 300 30px/1 var(--font-display); color: var(--aqua-deep); }
+.progress-figure small { font-size: 13px; color: var(--ink-faint); }
+.progress-rail {
+  height: 12px; border-radius: 999px; overflow: hidden;
+  border: 1px solid rgba(9, 70, 110, .4);
+  background: linear-gradient(180deg, #d7e9f4 0%, #eef8ff 100%);
+  box-shadow: inset 0 2px 4px rgba(6, 48, 78, .28);
+}
+.progress-fill {
+  height: 100%; width: 0; border-radius: 999px;
+  background: linear-gradient(180deg, #9fe6ff 0%, #2eb2e8 49%, #0d84c4 51%, #68cdf5 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9);
+  transition: width .4s var(--ease);
+}
+
+/* Значок ветки в углу постера — маленькая гелевая капля поверх картинки. */
+.pick-tag {
+  position: absolute; left: 5px; top: 5px; z-index: 2;
+  padding: 3px 8px; border-radius: 999px;
+  font: 700 9px/1 var(--font-body); letter-spacing: .4px; text-transform: uppercase;
+  color: #fff; text-shadow: 0 1px 1px rgba(0, 40, 70, .55);
+  border: 1px solid rgba(8, 50, 85, .6);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .55) 0%, rgba(20, 110, 170, .9) 48%,
+                                      rgba(8, 70, 120, .95) 52%, rgba(60, 160, 215, .9) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 1px 3px rgba(4, 40, 66, .45);
+}

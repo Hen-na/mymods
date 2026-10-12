@@ -198,6 +198,9 @@
 
       function end() {
         win.classList.remove('resizing');
+        // From here on the size is the visitor's choice: the song player stops
+        // resetting its height for each site's embed and leaves it alone.
+        win.classList.add('user-sized');
         clampIntoDesktop(win);
         grip.removeEventListener('pointermove', move);
         grip.removeEventListener('pointerup', end);
@@ -222,6 +225,17 @@
   }
 
   /* ------------------------------------------------------ window controls -- */
+  // Hiding a window does not stop what is inside it: a video or a track goes on
+  // playing where nobody can see it, and a player belonging to another site
+  // cannot be told to stop — the only way is to take its frame off the page.
+  // So closing empties the frame, and opening builds a fresh one.
+  function silence(win) {
+    var slot = win.querySelector('.yt-frame');
+    if (!slot || !slot.querySelector('iframe')) { return; }
+    slot.textContent = '';
+    slot.appendChild(element('p', 'yt-wait', 'Connecting…'));
+  }
+
   function wireWindow(win) {
     var bar = win.querySelector('.title-bar');
     if (!bar) { return; }
@@ -250,7 +264,7 @@
       });
     }
     if (close) {
-      close.addEventListener('click', function () { win.hidden = true; });
+      close.addEventListener('click', function () { win.hidden = true; silence(win); });
     }
 
     wireResize(win);
@@ -311,12 +325,44 @@
   layoutWindows();
   window.addEventListener('resize', layoutWindows);
 
+  /* ------------------------------------------------------------- youtube -- */
+  // The channel page itself cannot go in a frame — YouTube answers /channel/…
+  // with X-Frame-Options: SAMEORIGIN, and the browser refuses. What does embed
+  // is the official player, which is what the Share → Embed button hands out,
+  // pointed at the channel's uploads playlist: that playlist's id is the
+  // channel id with UC swapped for UU, so it always holds every upload without
+  // anything here needing to be updated.
+  var YT_CHANNEL = 'UCP2zOZdYhEAIwGjoL9SjNow';
+
+  // Built on first open, never on load. The player pulls in more script than
+  // this whole page weighs, and most visitors never open the window — shut, it
+  // costs nothing.
+  function mountYouTube() {
+    var slot = document.getElementById('yt-frame');
+    if (!slot || slot.querySelector('iframe')) { return; }
+
+    var frame = document.createElement('iframe');
+    // youtube-nocookie.com is the same player from the same company; it just
+    // does not write tracking cookies for someone who never presses play.
+    frame.src = 'https://www.youtube-nocookie.com/embed/videoseries?list=UU' +
+      YT_CHANNEL.slice(2);
+    frame.title = 'Hen_na on YouTube';
+    frame.loading = 'lazy';
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.allow = 'accelerometer; encrypted-media; gyroscope; picture-in-picture';
+    frame.allowFullscreen = true;
+
+    slot.textContent = '';
+    slot.appendChild(frame);
+  }
+
   /* ------------------------------------------------------- opening windows -- */
   function openWindowById(id) {
     var win = document.getElementById(id);
     if (!win) { return; }
     win.hidden = false;
     win.classList.remove('shaded');
+    if (id === 'yt-win') { mountYouTube(); }
     focusWindow(win);
     layoutWindows();
     if (FLOW_LAYOUT.matches) { win.scrollIntoView({ block: 'start' }); }
@@ -563,7 +609,10 @@
   // browser requests directly — which Genius and Musixmatch both do not, and
   // whose keys could not be kept secret on a static page anyway. Nothing is
   // requested until someone actually types.
-  var SEARCH_URL = 'https://itunes.apple.com/search?media=music&entity=song&limit=8&term=';
+  // Asks for far more than fits in the list: the ranking below decides which
+  // eight are worth showing, and it needs something to choose between.
+  var SEARCH_URL = 'https://itunes.apple.com/search?media=music&entity=song&limit=25&term=';
+  var RESULTS_SHOWN = 8;
   var NOW_PLAYING_KEY = 'hen_na_nowplaying';
 
   var artistOut = document.getElementById('cd-artist');
@@ -657,12 +706,109 @@
     return link;
   }
 
+  /* --------------------------------------------------- songs in a window -- */
+  // Music sites publish a player meant to be embedded, at an address that is
+  // not the one people share. Given a shared link this works out the player
+  // behind it; anything with no player answers null and stays an ordinary
+  // link out. Heights are what each site's own embed code asks for.
+  function embedFor(shared) {
+    var url;
+    try { url = new URL(shared); } catch (error) { return null; }
+    var host = url.hostname.replace(/^www\./, '');
+
+    // The YouTube watch page refuses to be framed (X-Frame-Options), the
+    // player does not. The id is in ?v= on a full link, in the path on a short
+    // one. A search or channel address has no id — nothing to play.
+    if (host === 'youtube.com' || host === 'm.youtube.com') {
+      var id = url.searchParams.get('v');
+      return id ? { src: 'https://www.youtube-nocookie.com/embed/' + id, name: 'YouTube', height: 280 } : null;
+    }
+    if (host === 'youtu.be') {
+      var short = url.pathname.slice(1);
+      return short ? { src: 'https://www.youtube-nocookie.com/embed/' + short, name: 'YouTube', height: 280 } : null;
+    }
+
+    // Spotify and Apple both name their player by inserting a word into the
+    // ordinary address.
+    if (host === 'open.spotify.com' && url.pathname.indexOf('/embed') !== 0) {
+      return { src: 'https://open.spotify.com/embed' + url.pathname, name: 'Spotify', height: 160 };
+    }
+    if (host === 'music.apple.com') {
+      return { src: 'https://embed.music.apple.com' + url.pathname + url.search, name: 'Apple Music', height: 180 };
+    }
+
+    // SoundCloud instead takes the track's address as a parameter.
+    if (host === 'soundcloud.com') {
+      return {
+        src: 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(shared) + '&color=%23000080',
+        name: 'SoundCloud', height: 170
+      };
+    }
+
+    return null;   // Genius and the rest: framing refused, so leave the link be
+  }
+
+  // Set by openLyrics, so the window's title bar can name what is playing.
+  var playingName = '';
+
+  function openPlayer(embed, shared) {
+    var win = document.getElementById('play-win');
+    var slot = document.getElementById('play-frame');
+    if (!win || !slot) { return; }
+
+    var title = document.getElementById('play-title');
+    var where = document.getElementById('play-loc');
+    var out = document.getElementById('play-ext');
+    var body = document.getElementById('play-body');
+
+    if (title) { title.textContent = (playingName || 'player') + ' — ' + embed.name + ' — Netscape'; }
+    if (where) { where.textContent = shared; }
+    if (out) { out.href = shared; out.textContent = '» open on ' + embed.name; }
+
+    // Each site wants a different height, but once the visitor has dragged the
+    // grip that is their window and the size stays where they put it.
+    if (body && !win.classList.contains('user-sized')) {
+      body.style.height = embed.height + 'px';
+    }
+
+    var frame = document.createElement('iframe');
+    frame.src = embed.src;
+    frame.title = embed.name + ' player';
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.allow = 'accelerometer; encrypted-media; gyroscope; picture-in-picture';
+    frame.allowFullscreen = true;
+
+    slot.textContent = '';
+    slot.appendChild(frame);
+
+    openWindowById('play-win');
+  }
+
+  // A song link: opens here if the site has a player, goes out if it does not.
+  // Either way the address is the real one, so ctrl- or middle-clicking still
+  // opens the actual site in a tab — the window is an offer, not a cage.
+  function songLink(href, label) {
+    var embed = embedFor(href);
+    if (!embed) { return externalLink(href, label); }
+
+    var link = element('a', 'plays-here', label);
+    link.href = href;
+    link.title = 'Opens in a window on this page';
+    link.addEventListener('click', function (event) {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button) { return; }
+      event.preventDefault();
+      openPlayer(embed, href);
+    });
+    return link;
+  }
+
   function openLyrics(hit) {
     var win = document.getElementById('lyrics-win');
     var body = document.getElementById('lyrics-body');
     var title = document.getElementById('lyrics-title');
     if (!win || !body) { return; }
 
+    playingName = hit.track;
     if (title) { title.textContent = hit.track + '.txt — Notepad'; }
 
     var status = document.getElementById('lyrics-status');
@@ -792,7 +938,7 @@
     var line = element('p', 'notes-media');
     items.forEach(function (item, index) {
       if (index) { line.appendChild(document.createTextNode('  ·  ')); }
-      line.appendChild(externalLink(item.url, '» ' + relationshipLabel(item.provider)));
+      line.appendChild(songLink(item.url, '» ' + relationshipLabel(item.provider)));
     });
     slot.appendChild(line);
   }
@@ -904,7 +1050,7 @@
 
     if (hit.store) {
       where.appendChild(document.createElement('br'));
-      where.appendChild(externalLink(hit.store, '» Apple Music'));
+      where.appendChild(songLink(hit.store, '» Apple Music'));
     }
     return where;
   }
@@ -977,16 +1123,13 @@
     });
   }
 
-  function requestSearch(query) {
+  function requestSearch(query, controller) {
     var url = SEARCH_URL + encodeURIComponent(query);
 
     // On file:// there is no point trying fetch at all — it always fails.
     if (location.protocol === 'file:') { return jsonp(url); }
 
-    if (inFlight) { inFlight.abort(); }
-    inFlight = typeof AbortController === 'function' ? new AbortController() : null;
-
-    return fetch(url, inFlight ? { signal: inFlight.signal } : undefined)
+    return fetch(url, controller ? { signal: controller.signal } : undefined)
       .then(function (response) {
         if (!response.ok) { throw new Error('search failed'); }
         return response.json();
@@ -997,30 +1140,186 @@
       });
   }
 
-  function search(query) {
-    requestSearch(query)
-      .then(function (data) {
-        results = (data.results || []).map(function (row) {
-          var thumb = row.artworkUrl100 || row.artworkUrl60 || '';
-          return {
-            track: row.trackName || '',
-            artist: row.artistName || '',
-            thumb: thumb,
-            // The size lives in the filename, so a bigger sleeve is a swap away.
-            art: thumb ? thumb.replace('100x100bb', '300x300bb') : '',
-            album: row.collectionName || '',
-            year: (row.releaseDate || '').slice(0, 4),
-            genre: row.primaryGenreName || '',
-            length: row.trackTimeMillis || 0,
-            store: row.trackViewUrl || ''
-          };
-        }).filter(function (hit) { return hit.track && hit.artist; });
+  function toHits(data) {
+    return ((data && data.results) || []).map(function (row) {
+      var thumb = row.artworkUrl100 || row.artworkUrl60 || '';
+      return {
+        track: row.trackName || '',
+        artist: row.artistName || '',
+        thumb: thumb,
+        // The size lives in the filename, so a bigger sleeve is a swap away.
+        art: thumb ? thumb.replace('100x100bb', '300x300bb') : '',
+        album: row.collectionName || '',
+        year: (row.releaseDate || '').slice(0, 4),
+        genre: row.primaryGenreName || '',
+        length: row.trackTimeMillis || 0,
+        store: row.trackViewUrl || ''
+      };
+    }).filter(function (hit) { return hit.track && hit.artist; });
+  }
 
+  /* ------------------------------------------------- matching the typing -- */
+  // Apple's search insists that every word match something, which is why a real
+  // artist plus a real title can come back empty while either half alone finds
+  // plenty. So a query that finds nothing is asked again shorter — from the
+  // front and from the back at once, because nobody agrees on whether the
+  // artist or the title comes first — and whatever arrives is then ranked here
+  // against what was actually typed.
+
+  function fold(text) {
+    return String(text == null ? '' : text)
+      .toLowerCase()
+      .replace(/[‘’ʼ`]/g, "'")       // curly apostrophes
+      .replace(/[^a-z0-9Ѐ-ӿ']+/g, ' ')         // latin, digits, cyrillic
+      .trim();
+  }
+
+  function words(text) {
+    var folded = fold(text);
+    return folded ? folded.split(' ') : [];
+  }
+
+  // Sorted, so "radiohead creep" and "creep radiohead" come out as one string
+  // and the order genuinely stops mattering.
+  function fingerprint(text) { return words(text).slice().sort().join(' '); }
+
+  // How well one result answers what was typed: `answered` counts the typed
+  // words it accounts for at all, `score` is how convincingly.
+  function measure(hit, queryWords) {
+    var haystack = words(hit.artist + ' ' + hit.track);
+    var answered = 0;
+    var score = 0;
+
+    queryWords.forEach(function (want) {
+      var best = 0;
+      haystack.forEach(function (have) {
+        if (have === want) { best = Math.max(best, 4); return; }
+        // A word still being typed: "radioh" should already find Radiohead.
+        if (have.indexOf(want) === 0) { best = Math.max(best, 3); return; }
+        if (have.indexOf(want) > 0) { best = Math.max(best, 1); }
+      });
+      if (best) { answered += 1; }
+      score += best;
+    });
+
+    // Answering every word beats answering most of them by more than any single
+    // word is worth, so a complete match cannot be outscored by a longer title
+    // that happens to repeat one of them.
+    if (answered === queryWords.length) { score += 6; }
+    return { score: score, answered: answered };
+  }
+
+  function dedupe(hits) {
+    var seen = {};
+    var out = [];
+    hits.forEach(function (hit) {
+      var key = fold(hit.artist + '|' + hit.track + '|' + hit.album);
+      if (seen[key]) { return; }
+      seen[key] = true;
+      out.push(hit);
+    });
+    return out;
+  }
+
+  function rank(hits, query) {
+    var queryWords = words(query);
+    if (!queryWords.length) { return hits; }
+
+    // Artist and title both typed out in full is not really a search, it is a
+    // request for one song — so when that lands, nothing else is offered.
+    var wanted = fingerprint(query);
+    var exact = hits.filter(function (hit) {
+      return fingerprint(hit.artist + ' ' + hit.track) === wanted;
+    });
+    if (exact.length) { return exact; }
+
+    var scored = hits.map(function (hit, index) {
+      var how = measure(hit, queryWords);
+      return { hit: hit, index: index, score: how.score, answered: how.answered };
+    });
+
+    // A widened query drags in songs that answer one stray word and nothing
+    // else — an album with "angel" somewhere in it, when the typing was an
+    // artist and a title. Once something accounts for more of the words, the
+    // ones accounting for less are not near misses, they are noise.
+    var reached = 0;
+    scored.forEach(function (row) { reached = Math.max(reached, row.answered); });
+    if (reached > 1) {
+      scored = scored.filter(function (row) { return row.answered === reached; });
+    }
+
+    return scored.sort(function (a, b) {
+      // Apple's own order breaks ties: among equals it knows best.
+      return b.score - a.score || a.index - b.index;
+    }).map(function (row) { return row.hit; });
+  }
+
+  // Shorter queries to fall back on, longest first. Each round drops the same
+  // number of words from the front and from the back and asks both ways at
+  // once, so neither "artist title" nor "title artist" is favoured. Two rounds
+  // is the limit: past that the query has lost so much that whatever comes
+  // back is about some other song.
+  function fallbackRounds(query) {
+    var list = words(query);
+    var rounds = [];
+    var floor = Math.max(1, list.length - 2);
+
+    for (var keep = list.length - 1; keep >= floor; keep -= 1) {
+      var head = list.slice(0, keep).join(' ');
+      var tail = list.slice(list.length - keep).join(' ');
+      rounds.push(head === tail ? [head] : [head, tail]);
+    }
+    return rounds;
+  }
+
+  // Rising count: a reply from a search the visitor has already typed past is
+  // dropped instead of overwriting the list under their hands.
+  var searchRun = 0;
+
+  function search(query) {
+    if (inFlight) { inFlight.abort(); }
+    var controller = typeof AbortController === 'function' ? new AbortController() : null;
+    inFlight = controller;
+
+    searchRun += 1;
+    var run = searchRun;
+
+    function ask(text) {
+      return requestSearch(text, controller).then(toHits);
+    }
+
+    function tryRound(rounds, index) {
+      if (index >= rounds.length) { return Promise.resolve([]); }
+
+      var attempts = rounds[index].map(function (text) {
+        // One half failing must not sink the other.
+        return ask(text).catch(function (error) {
+          if (error && error.name === 'AbortError') { throw error; }
+          return [];
+        });
+      });
+
+      return Promise.all(attempts).then(function (lists) {
+        var merged = [];
+        lists.forEach(function (list) { merged = merged.concat(list); });
+        return merged.length ? merged : tryRound(rounds, index + 1);
+      });
+    }
+
+    ask(query)
+      .then(function (hits) {
+        return hits.length ? hits : tryRound(fallbackRounds(query), 0);
+      })
+      .then(function (hits) {
+        if (run !== searchRun) { return; }
+
+        results = rank(dedupe(hits), query).slice(0, RESULTS_SHOWN);
         if (!results.length) { note('nothing found'); return; }
         renderResults();
       })
       .catch(function (error) {
         if (error && error.name === 'AbortError') { return; }
+        if (run !== searchRun) { return; }
         results = [];
         note('search unavailable');
       });

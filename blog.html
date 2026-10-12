@@ -12,7 +12,7 @@
   <title>Hen_na's Blog</title>
   <link rel="icon" href="assets/images/Grass_Block.webp" type="image/webp">
 
-  <link rel="stylesheet" href="assets/css/blog.css?v=32">
+  <link rel="stylesheet" href="assets/css/blog.css?v=36">
 </head>
 
 <body>
@@ -95,11 +95,11 @@
           <nav class="page-side">
             <p class="side-head">&#9658; NAVIGATION &#9668;</p>
             <ul class="side-menu">
-              <li><a href="index.html">the mod</a><span>LiDAR Scanner</span></li>
+              <li><a href="mod.html">the mod</a><span>LiDAR Scanner</span></li>
               <li><a href="versions.html">versions</a><span>every build</span></li>
               <li><a href="#gb-win" data-open="gb-win">guestbook</a><span>sign it!</span></li>
               <li><a href="#cd-win" data-open="cd-win">music</a><span>what I listen to</span></li>
-              <li><a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" target="_blank" rel="noopener">youtube</a><span>my videos</span></li>
+              <li><a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" data-open="yt-win" target="_blank" rel="noopener">youtube</a><span>my videos</span></li>
               <li><a href="https://t.me/kucheraviyvestnik" target="_blank" rel="noopener">telegram</a><span>come say hi</span></li>
             </ul>
 
@@ -114,7 +114,7 @@
 
             <p class="side-head">&#9658; LINK ME &#9668;</p>
             <div class="buttons88">
-              <a class="btn88 k-1" href="index.html">LiDAR<br>SCANNER</a>
+              <a class="btn88 k-1" href="mod.html">LiDAR<br>SCANNER</a>
               <a class="btn88 k-2" href="index.html">HEN_NA'S<br>SITE</a>
               <a class="btn88 k-3" href="blog.html">BLOG<br>SINCE 2026</a>
               <a class="btn88 k-4" href="versions.html">GET THE<br>MOD</a>
@@ -215,13 +215,82 @@
       </div>
       <div class="win-body box-body">
         <p>
-          <a href="index.html">&raquo; The mod</a><br>
+          <a href="mod.html">&raquo; The mod</a><br>
           <a href="versions.html">&raquo; Version archive</a><br>
-          <a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" target="_blank" rel="noopener">&raquo; YouTube</a><br>
+          <a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" data-open="yt-win" target="_blank" rel="noopener">&raquo; YouTube</a><br>
           <a href="https://t.me/kucheraviyvestnik" target="_blank" rel="noopener">&raquo; Telegram</a><br>
           <a href="https://fabricmc.net/" target="_blank" rel="noopener">&raquo; Fabric</a>
         </p>
 
+      </div>
+    </section>
+
+    <!-- ================================================== youtube ======= -->
+    <!-- The player is not written here: blog.js builds the iframe the first
+         time the window is opened, so a visitor who never opens it never pays
+         for YouTube's scripts. -->
+    <section class="window browser" id="yt-win" data-x="230" data-y="96" style="left: 230px; top: 96px; width: 520px;" hidden>
+      <div class="title-bar">
+        <span class="tb-icon i-net" aria-hidden="true"></span>
+        <span class="tb-text">Hen_na &mdash; YouTube &mdash; Netscape</span>
+        <span class="tb-btns">
+          <button type="button" data-act="shade" title="Roll up"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
+          <button type="button" data-act="max" title="Maximize"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
+          <button type="button" data-act="close" title="Close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+
+      <div class="menu-bar">
+        <span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span>
+        <span><u>G</u>o</span><span><u>C</u>ommunicator</span><span><u>H</u>elp</span>
+      </div>
+
+      <div class="browser-location">
+        <span class="loc-label">Location:</span>
+        <span class="loc-field">http://www.youtube.com/user/Hen_na</span>
+      </div>
+
+      <div class="win-body yt-body">
+        <div class="yt-frame" id="yt-frame"><p class="yt-wait">Connecting to www.youtube.com&hellip;</p></div>
+      </div>
+
+      <div class="status-bar">
+        <span><a href="https://www.youtube.com/channel/UCP2zOZdYhEAIwGjoL9SjNow" target="_blank" rel="noopener">&raquo; open on youtube.com</a></span>
+        <span class="grip" data-resize title="Drag to resize"></span>
+      </div>
+    </section>
+
+    <!-- ================================================== song player === -->
+    <!-- One window, reused for whichever song link was clicked. Title, address
+         and the frame inside are written by blog.js at that moment. -->
+    <section class="window browser" id="play-win" data-x="300" data-y="300" style="left: 300px; top: 300px; width: 460px;" hidden>
+      <div class="title-bar">
+        <span class="tb-icon i-net" aria-hidden="true"></span>
+        <span class="tb-text" id="play-title">player &mdash; Netscape</span>
+        <span class="tb-btns">
+          <button type="button" data-act="shade" title="Roll up"><span aria-hidden="true">_</span><span class="sr-only">Roll up</span></button>
+          <button type="button" data-act="max" title="Maximize"><span aria-hidden="true">&#9633;</span><span class="sr-only">Maximize</span></button>
+          <button type="button" data-act="close" title="Close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        </span>
+      </div>
+
+      <div class="menu-bar">
+        <span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span>
+        <span><u>G</u>o</span><span><u>C</u>ommunicator</span><span><u>H</u>elp</span>
+      </div>
+
+      <div class="browser-location">
+        <span class="loc-label">Location:</span>
+        <span class="loc-field" id="play-loc"></span>
+      </div>
+
+      <div class="win-body yt-body" id="play-body">
+        <div class="yt-frame" id="play-frame"><p class="yt-wait">Connecting&hellip;</p></div>
+      </div>
+
+      <div class="status-bar">
+        <span><a id="play-ext" href="https://genius.com/" target="_blank" rel="noopener">&raquo; open on the real site</a></span>
+        <span class="grip" data-resize title="Drag to resize"></span>
       </div>
     </section>
 
@@ -324,8 +393,8 @@
   </div>
 
 
-  <script src="assets/data/posts.js?v=32"></script>
-  <script src="assets/js/blog.js?v=32" defer></script>
+  <script src="assets/data/posts.js?v=36"></script>
+  <script src="assets/js/blog.js?v=36" defer></script>
 </body>
 
 </html>
