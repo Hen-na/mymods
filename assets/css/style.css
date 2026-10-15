@@ -892,11 +892,11 @@ kbd {
 
 /* Пять ступеней. Оттенки идут от бирюзового к пурпурному: порядок читается
    даже боковым зрением, а синева никуда не девается. */
-.tier[data-level="start"] { --badge-1:#9ff0d0; --badge-2:#2fc39a; --badge-3:#0e9a78; --badge-4:#6fe3c2; --badge-deep:#077a5e; }
-.tier[data-level="base"]  { --badge-1:#9fe6ff; --badge-2:#2eb2e8; --badge-3:#0d84c4; --badge-4:#68cdf5; --badge-deep:#0a6392; }
-.tier[data-level="mid"]   { --badge-1:#a9c8ff; --badge-2:#4a7fe8; --badge-3:#2554c4; --badge-4:#7ea4f5; --badge-deep:#1c3f96; }
-.tier[data-level="adv"]   { --badge-1:#c3b4ff; --badge-2:#7a5ce8; --badge-3:#5533c4; --badge-4:#a38ef5; --badge-deep:#412596; }
-.tier[data-level="boss"]  { --badge-1:#ffb4e8; --badge-2:#e05cc0; --badge-3:#b32a93; --badge-4:#f58ed8; --badge-deep:#8a1f71; }
+[data-level="start"] { --badge-1:#9ff0d0; --badge-2:#2fc39a; --badge-3:#0e9a78; --badge-4:#6fe3c2; --badge-deep:#077a5e; }
+[data-level="base"]  { --badge-1:#9fe6ff; --badge-2:#2eb2e8; --badge-3:#0d84c4; --badge-4:#68cdf5; --badge-deep:#0a6392; }
+[data-level="mid"]   { --badge-1:#a9c8ff; --badge-2:#4a7fe8; --badge-3:#2554c4; --badge-4:#7ea4f5; --badge-deep:#1c3f96; }
+[data-level="adv"]   { --badge-1:#c3b4ff; --badge-2:#7a5ce8; --badge-3:#5533c4; --badge-4:#a38ef5; --badge-deep:#412596; }
+[data-level="boss"]  { --badge-1:#ffb4e8; --badge-2:#e05cc0; --badge-3:#b32a93; --badge-4:#f58ed8; --badge-deep:#8a1f71; }
 
 /* --- карточки ------------------------------------------------------------- */
 .tier-items {
@@ -1018,16 +1018,51 @@ kbd {
 .progress-figure { font: 300 30px/1 var(--font-display); color: var(--aqua-deep); }
 .progress-figure small { font-size: 13px; color: var(--ink-faint); }
 .progress-rail {
+  position: relative;
   height: 12px; border-radius: 999px; overflow: hidden;
   border: 1px solid rgba(9, 70, 110, .4);
   background: linear-gradient(180deg, #d7e9f4 0%, #eef8ff 100%);
   box-shadow: inset 0 2px 4px rgba(6, 48, 78, .28);
 }
-.progress-fill {
-  height: 100%; width: 0; border-radius: 999px;
-  background: linear-gradient(180deg, #9fe6ff 0%, #2eb2e8 49%, #0d84c4 51%, #68cdf5 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9);
-  transition: width .4s var(--ease);
+/* Блик, пробегающий по стеклу после каждой отметки. Лежит поверх кусков, но
+   мыши не мешает. */
+.progress-rail::after {
+  content: ''; position: absolute; inset: 0; z-index: 2;
+  pointer-events: none; opacity: 0;
+  background: linear-gradient(100deg,
+    rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, .9) 50%, rgba(255, 255, 255, 0) 62%);
+  transform: translateX(-110%);
+}
+.progress-rail.is-lit::after { animation: rail-sweep .72s var(--ease); }
+@keyframes rail-sweep {
+  0%   { transform: translateX(-110%); opacity: 0; }
+  22%  { opacity: 1; }
+  100% { transform: translateX(110%); opacity: 0; }
+}
+/* Полоса — не одна заливка, а набор кусков по ступеням. Каждый в цвете своей
+   плашки, шириной в свою долю от всего списка: сразу видно, что пройдено не
+   просто «тридцать процентов», а, скажем, весь старт и ничего сложнее. */
+.progress-track { display: flex; height: 100%; }
+.progress-seg {
+  height: 100%; min-width: 0; flex: 0 0 auto;
+  background: linear-gradient(180deg,
+    var(--badge-1) 0%, var(--badge-2) 49%, var(--badge-3) 51%, var(--badge-4) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+  /* Вся анимация полосы живёт здесь. Работает она только потому, что куски
+     постоянные: ширина едет от прежнего значения к новому. */
+  transition: width .5s var(--ease);
+}
+/* Скруглять куски по отдельности больше нельзя: крайним может оказаться
+   пустой, нулевой ширины, и закругление достанется ему, а не видимому. Края
+   обрезает сама полоса — у неё и радиус, и overflow: hidden. */
+
+/* Тонкая светлая щель между соседними цветами, чтобы граница читалась. */
+.progress-seg + .progress-seg { box-shadow: inset 1px 0 0 rgba(255, 255, 255, .55), inset 0 1px 0 rgba(255, 255, 255, .8); }
+
+/* Просили не анимировать — не анимируем: значения проставляются сразу. */
+@media (prefers-reduced-motion: reduce) {
+  .progress-seg { transition: none; }
+  .progress-rail.is-lit::after { animation: none; }
 }
 
 /* Значок ветки в углу постера — маленькая гелевая капля поверх картинки. */
@@ -1042,13 +1077,10 @@ kbd {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 1px 3px rgba(4, 40, 66, .45);
 }
 
-/* Обложка называет себя сама. Когда картинка есть, и запасной текст поверх
-   неё, и подпись под ней — лишний шум; название всё равно всплывает в
-   подсказке. Нет картинки — и то и другое возвращается, иначе плитка осталась
-   бы безымянной. Метку has-art ставит скрипт: он один знает, загрузилась
-   картинка или отвалилась. */
-.pick.has-art .poster-text,
-.pick.has-art .pick-title { display: none; }
-
-/* Без подписи карточка — это сама обложка, и ряд выравнивается по ней. */
-.pick.has-art { align-content: start; }
+/* Запасное название лежит внутри обложки всегда — чтобы оно само
+   оказалось на виду, если картинка не придёт. Когда картинка есть, этот
+   текст печатался прямо поверх постера — вот его и прячем. Подпись под
+   карточкой остаётся всегда: по одной обложке не всегда понятно, что это,
+   а ряд без неё распадается по высоте. Метку has-art ставит скрипт: он
+   один знает, загрузилась картинка или отвалилась. */
+.pick.has-art .poster-text { display: none; }

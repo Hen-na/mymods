@@ -44,6 +44,30 @@ window.TIER_ITEMS = [
     poster: "https://thumb.wikimedia.org/wikipedia/en/thumb/4/48/Bluey_%282018_TV_series%29_title_card.jpg/330px-Bluey_%282018_TV_series%29_title_card.jpg",
     vocab:  "Австралийский мультсериал. Речь простая и бытовая, а смешно бывает и взрослым."
   },
+   {
+    level:  'mid',
+    title:  'Life is Strange',
+    kind:   'игра',
+    year:   2015,
+    poster: 'https://upload.wikimedia.org/wikipedia/en/0/0d/Life_Is_Strange_cover_art.png?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original',
+    vocab:  'Подростковый сленг американской старшей школы (hella, dude, rad), немного мата и много внутренних монологов и дневниковых записей Макс. Отдельно полезна перемотка времени: любой диалог можно переслушать, не переигрывая сцену.'
+  },
+  {
+    level:  'adv',
+    title:  'Life is Strange: Before the Storm',
+    kind:   'игра',
+    year:   2017,
+    poster: 'https://upload.wikimedia.org/wikipedia/en/f/f8/Life-is-Strange-Before-the-Storm.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original',
+    vocab:  'Ещё больше сленга и мата: протагонистка — бунтарка Хлоя. Механика Backtalk заставляет на время понимать оскорбления и подбирать ответы, а школьный спектакль по «Буре» Шекспира и партия в настольную ролёвку добавляют староанглийский и фэнтезийную лексику.'
+  },
+  {
+    level:  'mid',
+    title:  'Life is Strange 2',
+    kind:   'игра',
+    year:   2018,
+    poster: 'https://upload.wikimedia.org/wikipedia/en/f/fa/Life_Is_Strange_2_cover.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original',
+    vocab:  'Роуд-муви через запад США: с младшим братом герой говорит просто, но вокруг взрослые темы (полиция, иммиграция, расизм) и разные региональные манеры речи. В диалоги вплетены испанские фразы из мексиканско-американской семьи.'
+  },
   {
     level:  "start",
     title:  "Pokémon",
@@ -97,7 +121,7 @@ window.TIER_ITEMS = [
     title:  "Minecraft на английском",
     kind:   "игра",
     year:   2011,
-    poster: "",
+    poster: "https://gamesdokan.com/wp-content/uploads/2020/04/minecraft-java-edition-cover.png",
     vocab:  "Самый дешёвый лайфхак: просто переключи язык, и бытовые слова (craft, furnace, enchant) запомнятся сами."
   },
   {
