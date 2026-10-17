@@ -37,6 +37,33 @@ window.TIER_LEVELS = [
 
 window.TIER_ITEMS = [
   {
+    level:  'mid',
+    title:  "Marvel's Spider-Man",
+    kind:   'игра',
+    year:   2018,
+    tag:    '',
+    poster: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Spider-Man_PS4_cover.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original',
+    vocab:  'Полностью озвучена, речь чёткая, боевые реплики короткие. Сложнее каламбуры и подколки Питера, научная лексика лаборатории (протезы, вирус, токсины) и быстрые саркастичные подкасты Джоны Джеймсона во время полётов по городу.'
+  },
+  {
+    level:  'mid',
+    title:  "Marvel's Spider-Man: Miles Morales",
+    kind:   'игра',
+    year:   2020,
+    tag:    '',
+    poster: 'https://upload.wikimedia.org/wikipedia/en/a/a3/Spider-Man_Miles_Morales.jpeg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original',
+    vocab:  'Короче первой части и чуть проще по сюжету, но речь живее: молодёжный сленг Гарлема, разговоры с соседями и общиной, вкрапления испанского из пуэрто-риканской семьи Майлза. Немного корпоративно-технической лексики вокруг энергетического проекта Roxxon.'
+  },
+  {
+    level:  'mid',
+    title:  "Marvel's Spider-Man 2",
+    kind:   'игра',
+    year:   2023,
+    tag:    '',
+    poster: 'https://upload.wikimedia.org/wikipedia/en/0/0f/SpiderMan2PS5BoxArt.jpeg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original',
+    vocab:  'Диалогов больше, чем в первой части, и они эмоциональнее: два героя с разной манерой речи, отношения, утрата, зависимость от симбиота. Добавляется охотничья лексика Крейвена и снова саркастичные подкасты Джеймсона, которые идут быстро и без пауз.'
+  },
+  {
     level:  "start",
     title:  "Bluey",
     kind:   "сериал",
